@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE why3session PUBLIC "-//Why3//proof session v5//EN"
+"http://why3.lri.fr/why3session.dtd">
+<why3session shape_version="4">
+<prover id="0" name="CVC3" version="2.4.1" timelimit="30" steplimit="0" memlimit="6000"/>
+<prover id="1" name="CVC4" version="1.4" timelimit="30" steplimit="0" memlimit="6000"/>
+<prover id="4" name="CVC4" version="1.6" alternative="noBV" timelimit="130" steplimit="0" memlimit="8000"/>
+<prover id="5" name="CVC4" version="1.6" timelimit="13" steplimit="0" memlimit="8000"/>
+<file name="../common_lemmas.mlw">
+<theory name="BV_asr_Lemmas" sum="e307a42e87b86733d48290e3efbe337c">
+ <goal name="asr_0" expl="">
+ <proof prover="0" timelimit="300"><result status="valid" time="0.13"/></proof>
+ </goal>
+ <goal name="asr_1" expl="">
+ <proof prover="0" timelimit="300"><result status="valid" time="0.85"/></proof>
+ </goal>
+ <goal name="asr_f" expl="">
+ <proof prover="0" timelimit="300"><result status="valid" time="0.12"/></proof>
+ </goal>
+ <goal name="xor_0" expl="">
+ <proof prover="1"><result status="valid" time="0.01"/></proof>
+ </goal>
+ <goal name="xor_1" expl="">
+ <proof prover="1"><result status="valid" time="0.08"/></proof>
+ </goal>
+ <goal name="or_0" expl="">
+ <proof prover="1"><result status="valid" time="0.01"/></proof>
+ </goal>
+ <goal name="pow2_72" expl="">
+ <proof prover="0"><result status="valid" time="0.26"/></proof>
+ </goal>
+ <goal name="pow2_80" expl="">
+ <proof prover="0"><result status="valid" time="0.30"/></proof>
+ </goal>
+ <goal name="pow2_88" expl="">
+ <proof prover="0"><result status="valid" time="0.31"/></proof>
+ </goal>
+ <goal name="pow2_96" expl="">
+ <proof prover="0"><result status="valid" time="0.36"/></proof>
+ </goal>
+ <goal name="pow2_104" expl="">
+ <proof prover="0"><result status="valid" time="0.36"/></proof>
+ </goal>
+ <goal name="pow2_112" expl="">
+ <proof prover="0"><result status="valid" time="0.39"/></proof>
+ </goal>
+ <goal name="pow2_120" expl="">
+ <proof prover="0"><result status="valid" time="0.42"/></proof>
+ </goal>
+ <goal name="pow2_128" expl="">
+ <proof prover="0"><result status="valid" time="0.46"/></proof>
+ </goal>
+ <goal name="pow2_136" expl="">
+ <proof prover="0"><result status="valid" time="0.49"/></proof>
+ </goal>
+ <goal name="pow2_144" expl="">
+ <proof prover="0"><result status="valid" time="0.53"/></proof>
+ </goal>
+ <goal name="pow2_152" expl="">
+ <proof prover="0"><result status="valid" time="0.59"/></proof>
+ </goal>
+ <goal name="pow2_160" expl="">
+ <proof prover="0"><result status="valid" time="0.47"/></proof>
+ </goal>
+ <goal name="pow2_168" expl="">
+ <proof prover="0"><result status="valid" time="0.51"/></proof>
+ </goal>
+ <goal name="pow2_176" expl="">
+ <proof prover="0"><result status="valid" time="0.71"/></proof>
+ </goal>
+ <goal name="pow2_184" expl="">
+ <proof prover="0"><result status="valid" time="0.74"/></proof>
+ </goal>
+ <goal name="pow2_192" expl="">
+ <proof prover="0"><result status="valid" time="0.61"/></proof>
+ </goal>
+ <goal name="pow2_200" expl="">
+ <proof prover="0"><result status="valid" time="0.64"/></proof>
+ </goal>
+ <goal name="pow2_208" expl="">
+ <proof prover="0"><result status="valid" time="0.88"/></proof>
+ </goal>
+ <goal name="pow2_216" expl="">
+ <proof prover="0"><result status="valid" time="0.73"/></proof>
+ </goal>
+ <goal name="pow2_224" expl="">
+ <proof prover="0"><result status="valid" time="0.81"/></proof>
+ </goal>
+ <goal name="pow2_232" expl="">
+ <proof prover="0"><result status="valid" time="0.80"/></proof>
+ </goal>
+ <goal name="pow2_240" expl="">
+ <proof prover="0"><result status="valid" time="0.85"/></proof>
+ </goal>
+ <goal name="pow2_248" expl="">
+ <proof prover="0"><result status="valid" time="0.87"/></proof>
+ </goal>
+ <goal name="pow2_256" expl="">
+ <proof prover="0"><result status="valid" time="0.90"/></proof>
+ </goal>
+</theory>
+<theory name="AvrModelLemmas" sum="f1288dde4a5ad9ddfdd2a9b11b883796">
+ <goal name="register_file_invariant_strengthen" expl="">
+ <transf name="split_goal_wp">
+  <goal name="register_file_invariant_strengthen.1" expl="">
+  <proof prover="0" timelimit="13" memlimit="8000"><result status="valid" time="0.01"/></proof>
+  </goal>
+  <goal name="register_file_invariant_strengthen.2" expl="">
+  <transf name="compute_in_goal">
+   <goal name="register_file_invariant_strengthen.2.1" expl="">
+   <transf name="eliminate_definition">
+    <goal name="register_file_invariant_strengthen.2.1.1" expl="">
+    <proof prover="5"><result status="valid" time="0.04"/></proof>
+    </goal>
+   </transf>
+   </goal>
+  </transf>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="pow_split" expl="">
+ <proof prover="4"><result status="valid" time="4.13"/></proof>
+ </goal>
+</theory>
+</file>
+</why3session>

@@ -1,0 +1,507 @@
+module AVRcode
+
+use import avrmodel.AVRint
+use import int.Int
+use import int.EuclideanDivision
+use import bv.Pow2int
+use import common_lemmas.AvrModelLemmas
+use common_lemmas.BV_asr_Lemmas
+use import ref.Ref
+
+use import int.Abs
+
+use avrmodel.Shadow as S
+
+let ghost bounded_uint (w: int) (reg: address_space) (lo: register): int
+  requires { w >= 0 }
+  ensures { result = uint w reg lo }
+  ensures { 0 <= result < pow2 (8*w)}
+= uint_bound reg lo w; uint w reg lo
+
+let sub_cf_from_z (ghost z_addr: int): unit
+  requires {
+    z_addr = uint 2 reg rZ /\
+    let lower = 32 in
+    let upper = (pow2 16) - 1 in
+    lower <= z_addr < upper /\
+    reg[21] = 0
+  }
+  requires {S.synchronized S.shadow reg}
+
+  ensures { uint 2 reg rZ = z_addr + 1}
+  ensures { mem = (old mem)[z_addr <- old (mem[z_addr] - ?cf) + ?cf*256] }
+  ensures { S.synchronized S.shadow reg }
+= ld r20 rZ;
+  sbc r20 r21;
+  st_inc rZ r20;
+
+  S.modify_r20();
+  S.modify_r30();
+  S.modify_r31()
+
+let sub31_cf_from_z ()
+  requires {
+    let lower = 32 in
+    let upper = (pow2 16) - 31 in
+    lower <= uint 2 reg rZ < upper /\
+    reg[21] = 0
+  }
+  requires {S.synchronized S.shadow reg}
+
+  ensures { uint 2 reg rZ = old (uint 2 reg rZ) + 31 }
+  ensures { uint 31 mem (old (uint 2 reg rZ)) = uint 31 (old mem) (old (uint 2 reg rZ)) - (old (?cf)) + ?cf*pow2 248 }
+  ensures {
+    let z_addr = old (uint 2 reg rZ) in
+    (forall j. mem[j] <> (old mem)[j] -> z_addr <= j /\ 31 + z_addr > j)
+  }
+  ensures { S.synchronized S.shadow reg }
+= let ghost z_addr = uint 2 reg rZ in
+'B:
+  sub_cf_from_z (z_addr + 0); (*  1 *)
+  sub_cf_from_z (z_addr + 1); (*  2 *)
+  sub_cf_from_z (z_addr + 2); (*  3 *)
+  sub_cf_from_z (z_addr + 3); (*  4 *)
+  sub_cf_from_z (z_addr + 4); (*  5 *)
+  sub_cf_from_z (z_addr + 5); (*  6 *)
+  sub_cf_from_z (z_addr + 6); (*  7 *)
+  sub_cf_from_z (z_addr + 7); (*  8 *)
+  sub_cf_from_z (z_addr + 8); (*  9 *)
+  sub_cf_from_z (z_addr + 9); (* 10 *)
+  sub_cf_from_z (z_addr + 10); (* 11 *)
+  sub_cf_from_z (z_addr + 11); (* 12 *)
+  sub_cf_from_z (z_addr + 12); (* 13 *)
+  sub_cf_from_z (z_addr + 13); (* 14 *)
+  sub_cf_from_z (z_addr + 14); (* 15 *)
+  sub_cf_from_z (z_addr + 15); (* 16 *)
+  sub_cf_from_z (z_addr + 16); (* 17 *)
+  sub_cf_from_z (z_addr + 17); (* 18 *)
+  sub_cf_from_z (z_addr + 18); (* 19 *)
+  sub_cf_from_z (z_addr + 19); (* 20 *)
+  sub_cf_from_z (z_addr + 20); (* 21 *)
+  sub_cf_from_z (z_addr + 21); (* 22 *)
+  sub_cf_from_z (z_addr + 22); (* 23 *)
+  sub_cf_from_z (z_addr + 23); (* 24 *)
+  sub_cf_from_z (z_addr + 24); (* 25 *)
+  sub_cf_from_z (z_addr + 25); (* 26 *)
+  sub_cf_from_z (z_addr + 26); (* 27 *)
+  sub_cf_from_z (z_addr + 27); (* 28 *)
+  sub_cf_from_z (z_addr + 28); (* 29 *)
+  sub_cf_from_z (z_addr + 29); (* 30 *)
+  sub_cf_from_z (z_addr + 30); (* 31 *)
+  ()
+
+let sub_x_y_in_z (ghost x y z: int): unit
+  requires {
+    x = uint 2 reg rX /\
+    y = uint 2 reg rY /\
+    z = uint 2 reg rZ /\
+    let lower = 32 in
+    let upper = (pow2 16) - 1 in
+    lower <= x < upper /\
+    lower <= y < upper /\
+    lower <= z < upper
+  }
+  requires { S.synchronized S.shadow reg }
+
+  ensures { uint 2 reg rX = x+1 }
+  ensures { uint 2 reg rY = y+1 }
+  ensures { uint 2 reg rZ = z+1 }
+  ensures { mem = (old mem)[z <- old (mem[x] - mem[y]) + ?cf*256] }
+  ensures { ?cf = - div (old(mem[x] - mem[y])) 256 }
+  ensures { S.synchronized S.shadow reg }
+= ld_inc r20 rX;
+  ld_inc r21 rY;
+  sub    r20 r21;
+  st_inc rZ  r20;
+
+  S.modify_r20();
+  S.modify_r21();
+  S.modify_r26();
+  S.modify_r27();
+  S.modify_r28();
+  S.modify_r29();
+  S.modify_r30();
+  S.modify_r31()
+
+
+let sbc_x_y_in_z (ghost x y z: int) (ghost xv yv: int): unit
+  requires {
+    x = uint 2 reg rX /\
+    y = uint 2 reg rY /\
+    z = uint 2 reg rZ /\
+    xv = mem[x] /\
+    yv = mem[y] /\
+    let lower = 32 in
+    let upper = (pow2 16) - 1 in
+    lower <= x < upper /\
+    lower <= y < upper /\
+    lower <= z < upper
+  }
+  requires { S.synchronized S.shadow reg }
+
+  ensures { uint 2 reg rX = x+1 }
+  ensures { uint 2 reg rY = y+1 }
+  ensures { uint 2 reg rZ = z+1 }
+  ensures { mem = (old mem)[z <- old (xv - yv - ?cf) + ?cf*256] }
+  ensures { ?cf = - div (xv - yv - old (?cf)) 256 }
+  ensures { S.synchronized S.shadow reg }
+= ld_inc r20 rX;
+  ld_inc r21 rY;
+  sbc    r20 r21;
+  st_inc rZ  r20;
+
+  S.modify_r20();
+  S.modify_r21();
+  S.modify_r26();
+  S.modify_r27();
+  S.modify_r28();
+  S.modify_r29();
+  S.modify_r30();
+  S.modify_r31()
+
+let sub8_x_y_in_z (ghost x y z xv yv: int): unit
+  requires {
+    x = uint 2 reg rX /\
+    y = uint 2 reg rY /\
+    z = uint 2 reg rZ /\
+    xv = uint 8 mem x /\
+    yv = uint 8 mem y /\
+    let lower = 32 in
+    let upper = pow2 16 - 8 in
+    (z <= x \/ z >= x+32) /\
+    (z <= y \/ z >= y+32) /\
+    lower <= x < upper /\
+    lower <= y < upper /\
+    lower <= z < upper
+  }
+  requires { S.synchronized S.shadow reg }
+
+  ensures {
+    uint 8 mem z = xv - yv + (pow2 64) * ?cf
+  }
+  ensures { uint 2 reg rX = x+8 }
+  ensures { uint 2 reg rY = y+8 }
+  ensures { uint 2 reg rZ = z+8 }
+  ensures { forall i. i < z \/ i >= z + 8 -> mem[i] = (old mem)[i]}
+  ensures { S.synchronized S.shadow reg }
+= let ghost memc = as_copy mem in
+'B:
+  sub_x_y_in_z (x+0) (y+0) (z+0);
+  sbc_x_y_in_z (x+1) (y+1) (z+1) (uint 1 memc (x+1)) (uint 1 memc (y+1));
+  sbc_x_y_in_z (x+2) (y+2) (z+2) (uint 1 memc (x+2)) (uint 1 memc (y+2));
+  sbc_x_y_in_z (x+3) (y+3) (z+3) (uint 1 memc (x+3)) (uint 1 memc (y+3));
+  sbc_x_y_in_z (x+4) (y+4) (z+4) (uint 1 memc (x+4)) (uint 1 memc (y+4));
+  sbc_x_y_in_z (x+5) (y+5) (z+5) (uint 1 memc (x+5)) (uint 1 memc (y+5));
+  sbc_x_y_in_z (x+6) (y+6) (z+6) (uint 1 memc (x+6)) (uint 1 memc (y+6));
+  sbc_x_y_in_z (x+7) (y+7) (z+7) (uint 1 memc (x+7)) (uint 1 memc (y+7));
+  ()
+
+let sbc8_x_y_in_z (ghost x y z xv yv: int): unit
+  requires {
+    x = uint 2 reg rX /\
+    y = uint 2 reg rY /\
+    z = uint 2 reg rZ /\
+    xv = uint 8 mem x /\
+    yv = uint 8 mem y /\
+    let lower = 32 in
+    let upper = pow2 16 - 8 in
+    (z <= x \/ z >= x+32) /\
+    (z <= y \/ z >= y+32) /\
+    lower <= x < upper /\
+    lower <= y < upper /\
+    lower <= z < upper
+  }
+  requires { S.synchronized S.shadow reg }
+
+  ensures {
+    uint 8 mem z = xv - yv - old (?cf) + (pow2 64) * ?cf
+  }
+  ensures { uint 2 reg rX = x+8 }
+  ensures { uint 2 reg rY = y+8 }
+  ensures { uint 2 reg rZ = z+8 }
+  ensures { forall i. i < z \/ i >= z + 8 -> mem[i] = (old mem)[i]}
+  ensures { S.synchronized S.shadow reg }
+= let ghost memc = as_copy mem in
+'B:
+  sbc_x_y_in_z (x+0) (y+0) (z+0) (uint 1 memc (x+0)) (uint 1 memc (y+0));
+  sbc_x_y_in_z (x+1) (y+1) (z+1) (uint 1 memc (x+1)) (uint 1 memc (y+1));
+  sbc_x_y_in_z (x+2) (y+2) (z+2) (uint 1 memc (x+2)) (uint 1 memc (y+2));
+  sbc_x_y_in_z (x+3) (y+3) (z+3) (uint 1 memc (x+3)) (uint 1 memc (y+3));
+  sbc_x_y_in_z (x+4) (y+4) (z+4) (uint 1 memc (x+4)) (uint 1 memc (y+4));
+  sbc_x_y_in_z (x+5) (y+5) (z+5) (uint 1 memc (x+5)) (uint 1 memc (y+5));
+  sbc_x_y_in_z (x+6) (y+6) (z+6) (uint 1 memc (x+6)) (uint 1 memc (y+6));
+  sbc_x_y_in_z (x+7) (y+7) (z+7) (uint 1 memc (x+7)) (uint 1 memc (y+7));
+  ()
+
+let sub32_x_y_in_z ()
+  requires {
+    let x_addr = uint 2 reg rX in
+    let y_addr = uint 2 reg rY in
+    let z_addr = uint 2 reg rZ in
+    let lower = 32 in
+    let upper = pow2 16 - 32 in
+    (z_addr <= x_addr \/ z_addr >= x_addr+32) /\
+    (z_addr <= y_addr \/ z_addr >= y_addr+32) /\
+    lower <= x_addr < upper /\
+    lower <= y_addr < upper /\
+    lower <= z_addr < upper
+  }
+  requires { S.synchronized S.shadow reg }
+  ensures {
+    let old_x = old (uint 32 mem (uint 2 reg rX)) in
+    let old_y = old (uint 32 mem (uint 2 reg rY)) in
+    let new_z = uint 32 mem (old (uint 2 reg rZ)) in
+    new_z = mod (old_x - old_y) (pow2 256)
+    /\
+    ?cf = -div (old_x - old_y) (pow2 256)
+  }
+  ensures { forall i. (i < old (uint 2 reg rZ) -> mem[i] = (old mem)[i]) /\ (i >= old (uint 2 reg rZ) + 32 -> mem[i] = (old mem)[i])}
+
+  ensures { uint 2 reg rX = old (uint 2 reg rX) + 32 }
+  ensures { uint 2 reg rY = old (uint 2 reg rY) + 32 }
+  ensures { uint 2 reg rZ = old (uint 2 reg rZ) + 32 }
+  ensures { S.synchronized S.shadow reg }
+= let ghost x_addr = uint 2 reg rX in
+  let ghost y_addr = uint 2 reg rY in
+  let ghost z_addr = uint 2 reg rZ in
+  let ghost x1 = uint 8 mem x_addr in
+  let ghost x2 = uint 8 mem (8 + x_addr) in
+  let ghost x3 = uint 8 mem (16 + x_addr) in
+  let ghost x4 = uint 8 mem (24 + x_addr) in
+  let ghost y1 = uint 8 mem y_addr in
+  let ghost y2 = uint 8 mem (8 + y_addr) in
+  let ghost y3 = uint 8 mem (16 + y_addr) in
+  let ghost y4 = uint 8 mem (24 + y_addr) in
+  let ghost x = uint 32 mem x_addr in
+  let ghost y = uint 32 mem y_addr in
+
+'B:
+  sub8_x_y_in_z x_addr y_addr z_addr x1 y1; (* Subtract bytes 0-7 *)
+'Add1:
+  sbc8_x_y_in_z (x_addr+8) (y_addr+8) (z_addr+8) x2 y2; (* Subtract bytes 8-15 *)
+'Add2:
+  sbc8_x_y_in_z (x_addr+16) (y_addr+16) (z_addr+16) x3 y3; (* Subtract bytes 16-23 *)
+'Add3:
+  assert { forall i. i < z_addr \/ i > z_addr + 24 -> mem[i] = (at(mem)'B)[i] };
+  assert { eq 8 mem (at(mem)'B) (24 + x_addr) /\ eq 8 mem (at(mem)'B) (24 + y_addr) };
+  sbc8_x_y_in_z (x_addr+24) (y_addr+24) (z_addr+24) x4 y4; (* Subtract bytes 24-31 *)
+
+  assert {
+    uint 32 mem z_addr =
+    at(uint 8 mem z_addr)'Add1 +
+    (pow2 64) * at(uint 8 mem (z_addr+8))'Add2 +
+    (pow2 128) * at(uint 8 mem (z_addr+16))'Add3 +
+    (pow2 192) * uint 8 mem (z_addr+24)
+    by
+    eq 8 mem (at(mem)'Add1) (z_addr) /\
+    at(uint 8 mem (z_addr+8))'Add2 = uint 8 mem (z_addr+8) /\
+    at(uint 8 mem (z_addr+16))'Add3 = uint 8 mem (z_addr+16)
+  };
+  assert { uint 32 mem z_addr = x - y + (pow2 256) * ?cf };
+
+  uint_bound mem z_addr 32;
+  assert { forall i j. 0 <= i < pow2 256 /\ i = j + (pow2 256) -> i = mod (j) (pow2 256) };
+  assert {uint 32 mem z_addr = mod (x - y) (pow2 256) by (pow2 256) * ?cf = 0 \/ (pow2 256) * ?cf = (pow2 256)};
+  ()
+
+(* This function contains the assembly computations of avrnacl_fe25519_sub *)
+let avrnacl_fe25519_sub_compute_section ()
+  requires {
+    let x_addr = uint 2 reg rX in
+    let y_addr = uint 2 reg rY in
+    let z_addr = uint 2 reg rZ in
+    (z_addr <= x_addr \/ z_addr >= x_addr+32) /\
+    (z_addr <= y_addr \/ z_addr >= y_addr+32) /\
+    32 <= x_addr < pow2 15 /\
+    32 <= y_addr < pow2 15 /\
+    32 <= z_addr < pow2 15
+  }
+  requires { reg[19] = 38 }
+  requires {S.synchronized S.shadow reg}
+
+  ensures {
+    let x = old(uint 32 mem (uint 2 reg rX)) in
+    let y = old(uint 32 mem (uint 2 reg rY)) in
+    let cf1 = - div (x - y) (pow2 256) in
+    let cf2 = - div (mod (x - y) (pow2 256) - cf1*38) (pow2 256) in
+    let z = uint 32 mem (old (uint 2 reg rZ)) in
+    z = mod (x - y - 38*cf1) (pow2 256) - cf2*38
+  }
+  ensures {
+    let z_addr = old(uint 2 reg rZ) in
+    forall i. (z_addr > i \/ 31 + z_addr < i) -> mem[i] = (old mem)[i]
+  }
+  ensures {S.synchronized S.shadow reg}
+=
+'Sub:
+  sub32_x_y_in_z ();
+
+'Reduce:
+abstract
+ensures { uint 2 reg rZ = at(uint 2 reg rZ)'Sub }
+ensures { reg[21] = old (?cf) }
+ensures { S.synchronized S.shadow reg }
+  clr r21;
+  adc r21 r21; (* store carry in r21 *)
+
+  sbiw r30 32; (* reset z to first word of r *)
+
+  S.modify_r21();
+  S.modify_r30();
+  S.modify_r31();
+end;
+
+abstract
+  ensures { uint 2 reg rZ = old (uint 2 reg rZ) }
+  ensures { uint 32 mem (uint 2 reg rZ) = mod (uint 32 (at(mem)'Reduce) (uint 2 reg rZ) - (at(?cf)'Reduce)*38) (pow2 256)
+         /\ reg[21] = - div (old (uint 32 mem (uint 2 reg rZ)) - (at(?cf)'Reduce)*38) (pow2 256)}
+  ensures {
+    let z_addr = uint 2 reg rZ in
+    forall i. (z_addr > i \/ 31 + z_addr < i) -> mem[i] = (old mem)[i]
+  }
+  ensures { S.synchronized S.shadow reg }
+'B:
+
+abstract
+  ensures { uint 2 reg rZ = old (uint 2 reg rZ) + 1 }
+  ensures { reg[21] = 0 }
+  ensures {
+    let res = old (mem[uint 2 reg rZ]) - (at(?cf)'Reduce)*38 in
+    mem = (old mem)[old (uint 2 reg rZ) <- mod res 256] /\ ?cf = - div res 256
+  }
+  ensures { S.synchronized S.shadow reg }
+
+
+  ld r20 rZ; (* load ri indirect from ram *)
+  mul r21 r19; (* carry*38 = r1:r0 (r1 is zero) *)
+  sub r20 r0;
+  st_inc rZ r20;
+
+  clr r21;
+
+  S.modify_r20();
+  S.modify_r21();
+  S.modify_r30();
+  S.modify_r31();
+  S.modify_r0();
+  S.modify_r1();
+end;
+'B2:
+
+  sub31_cf_from_z ();
+
+  assert { uint 32 mem (at(uint 2 reg rZ)'B) = (at(uint 32 mem (uint 2 reg rZ))'B) - (at(?cf)'Reduce)*38 + ?cf*(pow2 256) };
+  uint_bound mem ((uint 2 reg rZ)-32) 32;
+  assert {
+    uint 32 mem (at(uint 2 reg rZ)'B) = mod (at(uint 32 mem (uint 2 reg rZ))'B - (at(?cf)'Reduce)*38) (pow2 256)
+  by
+    (forall i j. 0 <= i < pow2 256 -> i = j + pow2 256 -> i = mod j (pow2 256)) /\
+    0 <= uint 32 mem (at(uint 2 reg rZ)'B) < pow2 256
+  };
+  assert {
+    ?cf = - div (at(uint 32 mem (uint 2 reg rZ))'B - (at(?cf)'Reduce)*38) (pow2 256)
+  };
+
+  adc r21 r21; (* store carry in r21 *)
+
+  sbiw r30 32; (* reset z to first word of r *)
+
+  S.modify_r21();
+  S.modify_r30();
+  S.modify_r31();
+end;
+  assert {
+    uint 32 mem (uint 2 reg rZ) = mod (at((uint 32 mem (uint 2 reg rX)) - (uint 32 mem (uint 2 reg rY)))'Sub - (at(?cf)'Reduce)*38) (pow2 256)
+  by
+    uint 32 (at(mem)'Reduce) (uint 2 reg rZ) = mod (at((uint 32 mem (uint 2 reg rX)) - (uint 32 mem (uint 2 reg rY)))'Sub) (pow2 256)
+  };
+'R2:
+  ld  r20 rZ; (* load ri indirect from ram *)
+  mul   r21 r19; (* carry*38 = r1:r0 (r1 is zero) *)
+  sub   r20 r0; (* add r21 to r0 *)
+  st_inc rZ r20;
+
+  assert {
+    uint 32 mem (at(uint 2 reg rZ)'R2) = mod (at((uint 32 mem (uint 2 reg rX)) - (uint 32 mem (uint 2 reg rY)))'Sub - (at(?cf)'Reduce)*38) (pow2 256) - reg[21]*38
+  by
+    uint 32 mem (at(uint 2 reg rZ)'R2) = at(mem[uint 2 reg rZ])'R2 + (pow2 8) * (uint 31 (at(mem)'R2) (1 + at(uint 2 reg rZ)'R2)) - reg[21]*38 by
+    mem[at(uint 2 reg rZ)'R2] = at(mem[uint 2 reg rZ])'R2 - reg[21]*38 by
+    (reg[21] > 0 -> at(mem[uint 2 reg rZ])'R2 - reg[0] >= 0 /\ reg[0] = reg[21]*38) by reg[19] = 38
+  };
+
+  S.modify_r20();
+  S.modify_r30();
+  S.modify_r31();
+  S.modify_r0();
+  S.modify_r1()
+
+predicate (===) (x y: int) = mod x (pow2 256-38) = mod y (pow2 256-38)
+
+let ghost mod_256_to_256_m38 (cf1 cf2 x y: int): unit
+requires { 0 <= x < pow2 256 }
+requires { 0 <= y < pow2 256 }
+requires { cf1 = - div (x - y) (pow2 256) }
+requires { cf2 = - div (mod (x - y) (pow2 256) - cf1*38) (pow2 256) }
+ensures { mod (x - y - 38*cf1) (pow2 256) - cf2*38 === x - y }
+= assert {
+  let to_prove = mod (x - y - 38*cf1) (pow2 256) - cf2*38 === x - y in
+  let reduction = mod (x - y) (pow2 256) - 38*cf1 in
+  ((x - y > 0 -> to_prove) /\
+  (x - y <= 0 /\ reduction <= 0 -> to_prove) /\
+  (x - y <= 0 /\ reduction > 0 /\ reduction <= 38 -> to_prove) /\
+  (x - y <= 0 /\ reduction > 0 /\ reduction > 38 -> to_prove))
+  by cf1 = 0 \/ cf1 = 1 /\ (cf2 = 0 \/ cf2 = cf1)
+}
+
+(* *******************************************************
+ * avrnacl_fe25519_sub;
+ * subtracts two fe25519 integers (modulo 2^256 38)
+ * 622 cycles needed;
+ *
+ * inputs:
+ *    r      in register r25:r24;
+ *    a      in register r23:r22;
+ *    b      in register r21:r20;
+ *)
+let avrnacl_fe25519_sub ()
+  requires { 32 <= uint 2 reg 20 < pow2 15 }
+  requires { 32 <= uint 2 reg 22 < pow2 15 }
+  requires { 32 <= uint 2 reg 24 < pow2 15 }
+
+  requires {
+    let a_addr = uint 2 reg 22 in
+    let b_addr = uint 2 reg 20 in
+    let r_addr = uint 2 reg 24 in
+    (r_addr <= a_addr \/ r_addr >= a_addr+32) /\ (r_addr <= b_addr \/ r_addr >= b_addr+32)
+  }
+
+  ensures { uint 32 mem (old (uint 2 reg 24)) === (old ((uint 32 mem (uint 2 reg 22)) - (uint 32 mem (uint 2 reg 20)))) }
+
+  ensures { saved_registers (old reg) reg }
+  ensures { let r_addr = old (uint 2 reg 24) in
+            forall i. mem[i] <> (old mem)[i] -> r_addr <= i < r_addr + 32 }
+=
+  movw r26 r22; (* load operand address a to x *)
+  movw r30 r24; (* load address of result to z *)
+  movw r24 r28; (* save y register in r24 *)
+  movw r28 r20; (* load operand address b to y *)
+
+  ldi r19 38; (* load constant 38 to r19 *)
+
+  S.init();
+
+  (* Store the old values of X and Y in the proof context *)
+  let ghost old_x = bounded_uint 32 mem (uint 2 reg rX) in
+  let ghost old_y = bounded_uint 32 mem (uint 2 reg rY) in
+
+  avrnacl_fe25519_sub_compute_section ();
+
+  let cf1 = - div (old_x - old_y) (pow2 256) in
+  let cf2 = - div (mod (old_x - old_y) (pow2 256) - cf1*38) (pow2 256) in
+  mod_256_to_256_m38 cf1 cf2 old_x old_y;
+
+  movw r28 r24; (* restore y register *)
+
+  clr r1
+
+end

@@ -1,0 +1,657 @@
+module Fe25519
+
+use import int.Int
+use import int.EuclideanDivision
+use import bv.Pow2int
+use import bv.BV8
+use import avrmodel.AVRint
+use import ref.Ref
+
+constant p25519: int = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed
+
+goal p_eq: p25519 = pow2 255 - 19
+
+function uint (w: int) (m: address_space): int = AVRint.uint w m 0
+
+let ghost uint (w: int) (m: address_space): int
+  ensures { result = uint w m }
+= AVRint.uint w m 0
+
+val mk_space (): ref address_space
+
+(* note: the latter two should be 'extern void'
+extern char bigint_subp(unsigned char* r, const unsigned char* a);
+extern char bigint_mul256(unsigned char* r, const unsigned char* a, const unsigned char* b);
+extern char bigint_square256(unsigned char* r, const unsigned char* a);
+*)
+
+(* the aliassing restrictions enforced here are much stricter than the assembly requires *)
+val bigint_subp (r a: address_space): BV8.t
+  ensures { uint 32 r = t'int result*pow2 256 + old (uint 32 a) - p25519 }
+  ensures { t'int result <= 1 }
+  writes { r }
+
+val bigint_mul256 (r a b: address_space): unit
+  ensures { uint 64 r = uint 32 a * uint 32 b }
+  writes { r }
+
+val bigint_square256 (r a: address_space): unit
+  ensures { uint 64 r = uint 32 a * uint 32 a }
+  writes { r }
+
+type fe25519 = address_space
+
+predicate (===) (x y: int) = mod x p25519 = mod y p25519
+
+val fe25519_sub (r a b: address_space): unit
+  ensures { uint 32 r === uint 32 a - uint 32 b }
+  writes { r }
+
+val fe25519_add (r a b: address_space): unit
+  ensures { uint 32 r === uint 32 a + uint 32 b }
+  writes { r }
+
+val fe25519_red (r c: address_space): unit
+  ensures { uint 32 r === uint 64 c /\ uint 32 r < pow2 255 + 38*(pow2 248+37) }
+  writes { r }
+
+(*
+void fe25519_setzero(fe25519 *r)
+{
+  unsigned char i;
+  for(i=0;i<32;i++)
+    r->v[i]=0;
+}
+*)
+
+let fe25519_setzero (r: address_space)
+  ensures { uint 32 r = 0 }
+  writes { r }
+= for i = 0 to 31 do
+    invariant { forall j. 0 <= j < i -> r[j] = 0 }
+    invariant { forall i. 0 <= r[i] <= 255 }
+    set_byte r i 0;
+  done
+
+(*
+void fe25519_setone(fe25519 *r)
+{
+  unsigned char i;
+  r->v[0] = 1;
+  for(i=1;i<32;i++)
+    r->v[i]=0;
+}
+*)
+
+let fe25519_setone (r: address_space)
+  ensures { uint 32 r = 1 }
+  writes { r }
+= set_byte r 0 1;
+  for i = 1 to 31 do
+    invariant { forall j. 0 <= j < i -> r[j] = if j = 0 then 1 else 0 }
+    invariant { forall i. 0 <= r[i] <= 255 }
+    set_byte r i 0;
+  done
+
+
+(*
+void fe25519_neg(fe25519 *r, const fe25519 *x)
+{
+  fe25519 t;
+  fe25519_setzero(&t);
+  fe25519_sub(r, &t, x);
+}
+*)
+
+let fe25519_neg (r x: address_space)
+  ensures { uint 32 r === -uint 32 x }
+  writes { r }
+= let t = mk_space() in
+  fe25519_setzero (!t);
+  fe25519_sub r (!t) x
+
+(*
+void fe25519_cmov(fe25519 *r, const fe25519 *x, unsigned char b)
+{
+  unsigned char i;
+  unsigned long mask = b;
+  mask = -mask;
+  for(i=0;i<32;i++)
+    r->v[i] ^= mask & (x->v[i] ^ r->v[i]);
+}
+*)
+
+(* note: here we cheat a bit, since we don't use "long"; but this is likely a typo in the original code;
+   the original code is less efficient, but could be modelled simply too *)
+let fe25519_cmov (r x: address_space) (b: int)
+  requires { b = 0 \/ b = 1 }
+  ensures { uint 32 r = if b <> 0 then uint 32 x else old (uint 32 r) }
+  writes { r }
+= let mask = ref (BV8.of_int b) in
+  mask := BV8.neg (!mask);
+'B:
+  for i = 0 to 31 do
+    invariant { forall j. 0 <= j < i -> r[j] = if b <> 0 then x[j] else (at r 'B)[j] }
+    invariant { forall j. i <= j -> r[j] = (at r 'B)[j] }
+    invariant { forall i. 0 <= r[i] <= 255 }
+    set_bv8 r i (bw_xor (read_bv8 r i) (bw_and (!mask)
+                                               (bw_xor (read_bv8 x i) (read_bv8 r i))));
+  done
+
+(*
+/* reduction modulo 2^255-19 */
+void fe25519_freeze(fe25519 *r)
+{
+  unsigned char c;
+  fe25519 rt;
+  c = bigint_subp(rt.v, r->v);
+  fe25519_cmov(r,&rt,1-c);
+  c = bigint_subp(rt.v, r->v);
+  fe25519_cmov(r,&rt,1-c);
+}
+*)
+
+let fe25519_freeze (r: address_space): unit
+  ensures { uint 32 r = old (mod (uint 32 r) p25519) }
+  writes { r }
+= let rt = mk_space() in
+  assert { forall x. 0 <= x < p25519 -> x = mod x p25519 };
+  assert { forall x. p25519 <= x < 2*p25519 -> x - p25519 = mod x p25519 };
+  assert { forall x. 2*p25519 <= x < pow2 256 -> x - 2*p25519 = mod x p25519 };
+  let c = bigint_subp (!rt) r in
+  ghost uint_bound r 0 32; uint_bound (!rt) 0 32;
+  fe25519_cmov r (!rt) (1 - t'int c);
+  let c = bigint_subp (!rt) r in
+  ghost uint_bound r 0 32; uint_bound (!rt) 0 32;
+  fe25519_cmov r (!rt) (1 - t'int c)
+
+(* OPT: this also works *)
+let fe25519_freeze_opt (r: address_space): unit
+  requires { uint 32 r < pow2 255 + 38*(pow2 248+37) }
+  ensures { uint 32 r = old (mod (uint 32 r) p25519) }
+  writes { r }
+= let rt = mk_space() in
+  assert { forall x. 0 <= x < p25519 -> x = mod x p25519 };
+  assert { forall x. p25519 <= x < pow2 255 + 38*(pow2 248+37) -> x - p25519 = mod x p25519 };
+  let c = bigint_subp (!rt) r in
+  ghost uint_bound r 0 32; uint_bound (!rt) 0 32;
+  fe25519_cmov r (!rt) (1 - t'int c)
+
+(*
+ * these next two functions make little sense but are there for consistency with other implementations
+ *)
+
+(* in C, the struct gives this assignment operator for free *)
+let __fe25519_assign (r x: address_space)
+  writes { r }
+  ensures { uint 32 r = uint 32 x }
+= for i = 0 to 31 do
+    invariant { forall i. 0 <= r[i] <= 255 }
+    invariant { forall j. 0 <= j < i -> r[j] = x[j] }
+    set_byte r i (read_byte x i)
+  done
+
+(*
+void fe25519_unpack(fe25519 *r, const unsigned char x[32])
+{
+  unsigned char i;
+  for(i=0;i<32;i++)
+    r->v[i] = x[i];
+  r->v[31] &= 127;
+}
+
+/* Assumes input x being reduced below 2^255 */
+void fe25519_pack(unsigned char r[32], const fe25519 *x)
+{
+  unsigned char i;
+  fe25519 y = *x;
+  fe25519_freeze(&y);
+  for(i=0;i<32;i++)
+    r[i] = y.v[i];
+}
+*)
+
+(* the bit-and is probably idiosyncratic from other implementations *)
+let fe25519_unpack (r x: address_space)
+  ensures { uint 32 r = mod (uint 32 x) (pow2 255) }
+  writes { r}
+= for i = 0 to 31 do
+    invariant { forall i. 0 <= r[i] <= 255 }
+    invariant { forall j. 0 <= j < i -> r[j] = x[j] }
+    set_byte r i (read_byte x i)
+  done;
+  uint_bound x 0 31;
+  assert { x[31] >= 128 -> uint 32 x >= pow2 248*x[31] >= pow2 255 };
+  assert { x[31] <  128 -> uint 32 x <= pow2 248-1 + pow2 248*x[31] < pow2 255 };
+'P:
+  set_bv8 r 31 (bw_and (read_bv8 r 31) (BV8.of_int 127));
+  ghost if uint 32 x < pow2 255 then begin
+    assert { 0 <= uint 32 x };
+    assert { r[31] = x[31] };
+  end else begin
+    uint_bound x 0 32;
+    assert { r[31] = x[31] - 128 };
+    assert { uint 32 x - pow2 255 = mod (pow2 255*(-1) + uint 32 x) (pow2 255) = mod (uint 32 x) (pow2 255) };
+  end
+
+let fe25519_pack (r x: address_space)
+  ensures { uint 32 r = mod (uint 32 x) p25519 }
+  writes { r}
+= let y = mk_space() in
+  __fe25519_assign (!y) x;
+  fe25519_freeze (!y);
+  for i = 0 to 31 do  (* note: this is what the struct copy does *)
+    invariant { forall i. 0 <= r[i] <= 255 }
+    invariant { forall j. 0 <= j < i -> r[j] = (!y)[j] }
+    set_byte r i (read_byte (!y) i)
+  done
+
+let fe25519_pack_opt (r x: address_space)
+  requires { uint 32 x < pow2 255 + 38*(pow2 248+37) }
+  ensures { uint 32 r = mod (uint 32 x) p25519 }
+  writes { r}
+= let y = mk_space() in
+  __fe25519_assign (!y) x;
+  fe25519_freeze_opt (!y);
+  for i = 0 to 31 do  (* note: this is what the struct copy does *)
+    invariant { forall i. 0 <= r[i] <= 255 }
+    invariant { forall j. 0 <= j < i -> r[j] = (!y)[j] }
+    set_byte r i (read_byte (!y) i)
+  done
+
+(*
+void fe25519_mul(fe25519 *r, const fe25519 *x, const fe25519 *y)
+{
+  unsigned char t[64];
+  bigint_mul256(t,x->v,y->v);
+  fe25519_red(r,t);
+}
+
+void fe25519_mul121666(fe25519 *r, const fe25519 *x)
+{
+  unsigned char t[64];
+  bigint_mul256(t,x->v,_121666.v);
+  fe25519_red(r,t);
+}
+
+void fe25519_square(fe25519 *r, const fe25519 *x)
+{
+  unsigned char t[64];
+  bigint_square256(t,x->v);
+  fe25519_red(r,t);
+}
+*)
+
+let fe25519_mul (r x y: address_space): unit
+  ensures { uint 32 r === uint 32 x * uint 32 y }
+  writes { r }
+= let t = mk_space() in
+  bigint_mul256 (!t) x y;
+  fe25519_red r (!t)
+
+(*
+static const fe25519 _121666 = {{0x42, 0xDB, 0x01, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
+*)
+val _121666: address_space
+
+let fe25519_mul121666 (r x: address_space): unit
+  requires { let k = _121666 in
+             k[0] = 0x42 /\ k[1] = 0xDB /\ k[2] = 0x01 /\ forall i. 3 <= i < 32 -> k[i] = 0 }
+  ensures { uint 32 r === uint 32 x * 121666 }
+  writes { r }
+= let t = mk_space() in
+  bigint_mul256 (!t) x _121666;
+  fe25519_red r (!t)
+
+let fe25519_square (r x: address_space): unit
+  ensures { uint 32 r === uint 32 x * uint 32 x }
+  writes { r }
+= let t = mk_space() in
+  bigint_square256 (!t) x;
+  fe25519_red r (!t)
+
+end
+
+module Fe25519_invert
+
+use import int.Int
+use import int.EuclideanDivision
+use import bv.Pow2int
+use import bv.BV8
+use import avrmodel.AVRint
+
+use import ref.Ref
+use import Fe25519
+
+(*
+#include "fe25519.h"
+
+void fe25519_invert(fe25519 *r, const fe25519 *x)
+{
+	fe25519 z2;
+	fe25519 z11;
+	fe25519 z2_10_0;
+	fe25519 z2_50_0;
+	fe25519 z2_100_0;
+	fe25519 t0;
+	fe25519 t1;
+	unsigned char i;
+
+	/* 2 */ fe25519_square(&z2,x);
+	/* 4 */ fe25519_square(&t1,&z2);
+	/* 8 */ fe25519_square(&t0,&t1);
+	/* 9 */ fe25519_mul(&z2_10_0,&t0,x);
+	/* 11 */ fe25519_mul(&z11,&z2_10_0,&z2);
+	/* 22 */ fe25519_square(&t0,&z11);
+	/* 2^5 - 2^0 = 31 */ fe25519_mul(&z2_10_0,&t0,&z2_10_0);
+
+	/* 2^6 - 2^1 */ fe25519_square(&t0,&z2_10_0);
+	/* 2^7 - 2^2 */ fe25519_square(&t1,&t0);
+	/* 2^8 - 2^3 */ fe25519_square(&t0,&t1);
+	/* 2^9 - 2^4 */ fe25519_square(&t1,&t0);
+	/* 2^10 - 2^5 */ fe25519_square(&t0,&t1);
+	/* 2^10 - 2^0 */ fe25519_mul(&z2_10_0,&t0,&z2_10_0);
+
+	/* 2^11 - 2^1 */ fe25519_square(&t0,&z2_10_0);
+	/* 2^12 - 2^2 */ fe25519_square(&t1,&t0);
+	/* 2^20 - 2^10 */ for (i = 2;i < 10;i += 2) { fe25519_square(&t0,&t1); fe25519_square(&t1,&t0); }
+	/* 2^20 - 2^0 */ fe25519_mul(&z2_50_0,&t1,&z2_10_0);
+
+	/* 2^21 - 2^1 */ fe25519_square(&t0,&z2_50_0);
+	/* 2^22 - 2^2 */ fe25519_square(&t1,&t0);
+	/* 2^40 - 2^20 */ for (i = 2;i < 20;i += 2) { fe25519_square(&t0,&t1); fe25519_square(&t1,&t0); }
+	/* 2^40 - 2^0 */ fe25519_mul(&t0,&t1,&z2_50_0);
+
+	/* 2^41 - 2^1 */ fe25519_square(&t1,&t0);
+	/* 2^42 - 2^2 */ fe25519_square(&t0,&t1);
+	/* 2^50 - 2^10 */ for (i = 2;i < 10;i += 2) { fe25519_square(&t1,&t0); fe25519_square(&t0,&t1); }
+	/* 2^50 - 2^0 */ fe25519_mul(&z2_50_0,&t0,&z2_10_0);
+
+	/* 2^51 - 2^1 */ fe25519_square(&t0,&z2_50_0);
+	/* 2^52 - 2^2 */ fe25519_square(&t1,&t0);
+	/* 2^100 - 2^50 */ for (i = 2;i < 50;i += 2) { fe25519_square(&t0,&t1); fe25519_square(&t1,&t0); }
+	/* 2^100 - 2^0 */ fe25519_mul(&z2_100_0,&t1,&z2_50_0);
+
+	/* 2^101 - 2^1 */ fe25519_square(&t1,&z2_100_0);
+	/* 2^102 - 2^2 */ fe25519_square(&t0,&t1);
+	/* 2^200 - 2^100 */ for (i = 2;i < 100;i += 2) { fe25519_square(&t1,&t0); fe25519_square(&t0,&t1); }
+	/* 2^200 - 2^0 */ fe25519_mul(&t1,&t0,&z2_100_0);
+
+	/* 2^201 - 2^1 */ fe25519_square(&t0,&t1);
+	/* 2^202 - 2^2 */ fe25519_square(&t1,&t0);
+	/* 2^250 - 2^50 */ for (i = 2;i < 50;i += 2) { fe25519_square(&t0,&t1); fe25519_square(&t1,&t0); }
+	/* 2^250 - 2^0 */ fe25519_mul(&t0,&t1,&z2_50_0);
+
+	/* 2^251 - 2^1 */ fe25519_square(&t1,&t0);
+	/* 2^252 - 2^2 */ fe25519_square(&t0,&t1);
+	/* 2^253 - 2^3 */ fe25519_square(&t1,&t0);
+	/* 2^254 - 2^4 */ fe25519_square(&t0,&t1);
+	/* 2^255 - 2^5 */ fe25519_square(&t1,&t0);
+	/* 2^255 - 21 */ fe25519_mul(r,&t1,&z11);
+}
+*)
+
+
+(* in-place update versions -- why3 doesn't allow the alias otherwise *)
+let fe25519_mul_rx (r y: address_space): unit
+  ensures { uint 32 r === old(uint 32 r) * uint 32 y }
+  ensures { uint 32 r < pow2 255 + 38*(pow2 248+37) }
+  writes { r }
+= let x = r in
+  let t = mk_space() in
+  bigint_mul256 (!t) x y;
+  fe25519_red r (!t)
+
+let fe25519_mul_ry (r x: address_space): unit
+  ensures { uint 32 r === uint 32 x * old (uint 32 r) }
+  writes { r }
+= let y = r in
+  let t = mk_space() in
+  bigint_mul256 (!t) x y;
+  fe25519_red r (!t)
+
+let fe25519_square_rx (r: address_space): unit
+  ensures { uint 32 r === old (uint 32 r * uint 32 r) }
+  writes { r }
+= let x = r in
+  let t = mk_space() in
+  bigint_square256 (!t) x;
+  fe25519_red r (!t)
+
+(* for these assembly routines, the contract allows aliasing inputs with the result *)
+val fe25519_sub_rx (r b: address_space): unit
+  ensures { uint 32 r === old(uint 32 r) - uint 32 b }
+  writes { r }
+val fe25519_sub_ry (r a: address_space): unit
+  ensures { uint 32 r === uint 32 a - old(uint 32 r) }
+  writes { r }
+val fe25519_add_rx (r b: address_space): unit
+  ensures { uint 32 r === old(uint 32 r) + uint 32 b }
+  writes { r }
+val fe25519_add_ry (r a: address_space): unit
+  ensures { uint 32 r === uint 32 a + old(uint 32 r) }
+  writes { r }
+
+(* instrumented versions *)
+lemma congruence_mul:
+  forall x y z. x === y -> x*z === y*z
+
+let fe25519_square' (r x: address_space) (ghost xv: int)
+  requires { uint 32 x === xv }
+  ensures { uint 32 r === xv * xv }
+  ensures { uint 32 r === uint 32 x*uint 32 x }
+  writes { r }
+= fe25519_square r x;
+  assert { uint 32 r === xv * uint 32 x === xv * xv }
+
+let fe25519_mul' (r x y: address_space) (ghost xv yv: int)
+  requires { uint 32 x === xv }
+  requires { uint 32 y === yv }
+  ensures { uint 32 r === xv * yv }
+  ensures { uint 32 r === uint 32 x*uint 32 y }
+  writes { r }
+= fe25519_mul r x y;
+  assert { uint 32 r === uint 32 x * uint 32 y === xv * uint 32 y === xv * yv }
+
+let fe25519_mul_ry' (r x: address_space) (ghost xv yv: int)
+  requires { uint 32 x === xv }
+  requires { uint 32 r === yv }
+  ensures { uint 32 r === xv * yv }
+  ensures { uint 32 r === uint 32 x*old (uint 32 r) }
+  writes { r }
+= 'B: fe25519_mul_ry r x;
+  assert { uint 32 r === uint 32 x * at (uint 32 r)'B === uint 32 x * yv === xv * yv }
+
+use import int.Power
+function (^) (x y: int): int = power x y
+
+(* NOTE: the code only calls a versoin where r and x are aliassed, so we will use that as the base version *)
+let fe25519_invert_r(r: address_space)
+  (* This seemingly vacuous precondition is necessary since we have not established p25519's primeness yet *)
+  requires { forall n. not n === 0 -> n^(p25519-1) === 1 }
+  ensures { if old(uint 32 r === 0) then
+              uint 32 r === 0
+            else
+              uint 32 r * old (uint 32 r) === 1 }
+  writes { r }
+= let x = r in
+  let z2 = mk_space() in
+  let z11 = mk_space() in
+  let z2_10_0 = mk_space() in
+  let z2_50_0 = mk_space() in
+  let z2_100_0 = mk_space() in
+  let t0 = mk_space() in
+  let t1 = mk_space() in
+  let ghost n = uint 32 x in
+  let ghost g = as_copy x in
+
+  abstract ensures { uint 32 r === n^(pow2 255 - 21) }
+	(* 2 *) fe25519_square' (!z2) (x)   (ghost n);
+	(* 4 *) fe25519_square' (!t1) (!z2) (ghost n^2);
+	(* 8 *) fe25519_square' (!t0) (!t1) (ghost n^4);
+	(* 9 *) fe25519_mul' (!z2_10_0) (!t0) (x) (ghost n^8) (ghost n);
+	(* 11 *) fe25519_mul' (!z11) (!z2_10_0) (!z2) (ghost n^9) (ghost n^2);
+	(* 22 *) fe25519_square' (!t0) (!z11) (ghost n^11);
+	(* 2^5 - 2^0 = 31 *) fe25519_mul_ry' (!z2_10_0) (!t0) (ghost n^22) (ghost n^9); (* (!z2_10_0) *)
+
+	(* 2^6 - 2^1 *) fe25519_square' (!t0) (!z2_10_0) (ghost n^(pow2 5 - pow2 0));
+	(* 2^7 - 2^2 *) fe25519_square' (!t1) (!t0) (ghost n^(pow2 6 - pow2 1));
+	(* 2^8 - 2^3 *) fe25519_square' (!t0) (!t1) (ghost n^(pow2 7 - pow2 2));
+	(* 2^9 - 2^4 *) fe25519_square' (!t1) (!t0) (ghost n^(pow2 8 - pow2 3));
+	(* 2^10 - 2^5 *) fe25519_square' (!t0) (!t1) (ghost n^(pow2 9 - pow2 4));
+	(* 2^10 - 2^0 *) fe25519_mul_ry' (!z2_10_0) (!t0) (ghost n^(pow2 10 - pow2 5)) (ghost n^(pow2 5 - pow2 0)); (* (!z2_10_0); *)
+
+	(* 2^11 - 2^1 *) fe25519_square' (!t0) (!z2_10_0) (ghost n^(pow2 10 - pow2 0));
+	(* 2^12 - 2^2 *) fe25519_square' (!t1) (!t0) (ghost n^(pow2 11 - pow2 1));
+                          abstract ensures { uint 32 (!t1) === n^(pow2 20 - pow2 10) }   (* not really necessary, but prevents exponential growth of vacuous goals *)
+	(* 2^20 - 2^10 *) for i = 1 to 4 do
+                            invariant { let e = pow2 (12+2*(i-1)) - pow2 (2+2*(i-1)) in
+                                        uint 32 (!t1) === n^e /\ e >= 0 }
+                            invariant {  forall i. 0 <= (!t0)[i] <= 255 }
+                            invariant {  forall i. 0 <= (!t1)[i] <= 255 }
+                            let e = pow2 (12+2*(i-1)) - pow2 (2+2*(i-1)) in
+                            fe25519_square' (!t0) (!t1) (ghost n^e);
+                            fe25519_square' (!t1) (!t0) (ghost n^(2*e));
+                            assert { let e' = pow2 (12+2*i) - pow2 (2+2*i) in n^(4*e) = n^e' by 4*e = e' };
+                         done;
+                         end;
+	(* 2^20 - 2^0 *) fe25519_mul' (!z2_50_0) (!t1) (!z2_10_0) (ghost n^(pow2 20 - pow2 10)) (ghost n^(pow2 10 - pow2 0));
+
+	(* 2^21 - 2^1 *) fe25519_square' (!t0) (!z2_50_0) (ghost n^(pow2 20 - pow2 0));
+	(* 2^22 - 2^2 *) fe25519_square' (!t1) (!t0) (ghost n^(pow2 21 - pow2 1));
+                         abstract ensures { uint 32 (!t1) === n^(pow2 40 - pow2 20) }
+	(* 2^40 - 2^20 *)for i = 1 to 9 do
+                           invariant { let e = pow2 (22+2*(i-1)) - pow2 (2+2*(i-1)) in
+                                       uint 32 (!t1) === n^e /\ e >= 0 }
+                           invariant {  forall i. 0 <= (!t0)[i] <= 255 }
+                           invariant {  forall i. 0 <= (!t1)[i] <= 255 }
+                           let e = pow2 (22+2*(i-1)) - pow2 (2+2*(i-1)) in
+                           fe25519_square' (!t0) (!t1) (ghost n^e);
+                           fe25519_square' (!t1) (!t0) (ghost n^(2*e));
+                           assert { let e' = pow2 (22+2*i) - pow2 (2+2*i) in n^(4*e) = n^e' by 4*e = e' };
+                         done;
+                         end;
+	(* 2^40 - 2^0 *) fe25519_mul' (!t0) (!t1) (!z2_50_0) (ghost n^(pow2 40 - pow2 20)) (ghost n^(pow2 20 - pow2 0));
+
+	(* 2^41 - 2^1 *) fe25519_square' (!t1) (!t0) (ghost n^(pow2 40 - pow2 0));
+	(* 2^42 - 2^2 *) fe25519_square' (!t0) (!t1) (ghost n^(pow2 41 - pow2 1));
+                         abstract ensures { uint 32 (!t0) === n^(pow2 50 - pow2 10) }
+	(* 2^50 - 2^10 *)for i = 1 to 4 do
+                           invariant { let e = pow2 (42+2*(i-1)) - pow2 (2+2*(i-1)) in
+                                       uint 32 (!t0) === n^e /\ e >= 0 }
+                           invariant {  forall i. 0 <= (!t0)[i] <= 255 }
+                           invariant {  forall i. 0 <= (!t1)[i] <= 255 }
+                           let e = pow2 (42+2*(i-1)) - pow2 (2+2*(i-1)) in
+                           fe25519_square' (!t1) (!t0) (ghost n^e);
+                           fe25519_square' (!t0) (!t1) (ghost n^(2*e));
+                           assert { let e' = pow2 (42+2*i) - pow2 (2+2*i) in n^(4*e) = n^e' by 4*e = e' };
+                         done;
+                         end;
+	(* 2^50 - 2^0 *) fe25519_mul' (!z2_50_0) (!t0) (!z2_10_0) (ghost n^(pow2 50 - pow2 10)) (ghost n^(pow2 10 - pow2 0));
+
+	(* 2^51 - 2^1 *) fe25519_square' (!t0) (!z2_50_0) (ghost n^(pow2 50 - pow2 0));
+	(* 2^52 - 2^2 *) fe25519_square' (!t1) (!t0) (ghost n^(pow2 51 - pow2 1));
+                         abstract ensures { uint 32 (!t1) === n^(pow2 100 - pow2 50) }
+	(* 2^100 - 2^50 *)for i = 1 to 24 do
+                           invariant { let e = pow2 (52+2*(i-1)) - pow2 (2+2*(i-1)) in
+                                       uint 32 (!t1) === n^e /\ e >= 0 }
+                           invariant {  forall i. 0 <= (!t0)[i] <= 255 }
+                           invariant {  forall i. 0 <= (!t1)[i] <= 255 }
+                           let e = pow2 (52+2*(i-1)) - pow2 (2+2*(i-1)) in
+                           fe25519_square' (!t0) (!t1) (ghost n^e);
+                           fe25519_square' (!t1) (!t0) (ghost n^(2*e));
+                           assert { let e' = pow2 (52+2*i) - pow2 (2+2*i) in n^(4*e) = n^e' by 4*e = e' };
+                         done;
+                         end;
+	(* 2^100 - 2^0 *) fe25519_mul' (!z2_100_0) (!t1) (!z2_50_0) (ghost n^(pow2 100 - pow2 50)) (ghost n^(pow2 50 - pow2 0));
+
+
+        (* for some reason from this point on both CVC4 and Z3 run into difficulties, and we need more asserts *)
+
+        assert { n^(pow2 100 - pow2 50) * n^(pow2 50 - pow2 0) = n^(pow2 100 - pow2 0) };
+	(* 2^101 - 2^1 *) fe25519_square' (!t1) (!z2_100_0) (ghost n^(pow2 100 - pow2 0));
+        assert { let e  = pow2 100 - pow2 0 in
+                 let e' = pow2 101 - pow2 1 in n^e * n^e = n^(2*e) = n^e' by 2*e = e' };
+	(* 2^102 - 2^2 *) fe25519_square' (!t0) (!t1) (ghost n^(pow2 101 - pow2 1));
+                          abstract ensures { uint 32 (!t0) === n^(pow2 200 - pow2 100) }
+                          assert { uint 32 (!t0) === n^(2*pow2 101 - pow2 2) };
+	(* 2^200 - 2^100 *)for i = 1 to 49 do
+                            invariant { let e = pow2 (102+2*(i-1)) - pow2 (2+2*(i-1)) in
+                                        uint 32 (!t0) === n^e /\ e >= 0 }
+                            invariant {  forall i. 0 <= (!t0)[i] <= 255 }
+                            invariant {  forall i. 0 <= (!t1)[i] <= 255 }
+                            let e = pow2 (102+2*(i-1)) - pow2 (2+2*(i-1)) in
+                            fe25519_square' (!t1) (!t0) (ghost n^e);
+                            fe25519_square' (!t0) (!t1) (ghost n^(2*e));
+                            assert { let e' = pow2 (102+2*i) - pow2 (2+2*i) in n^(4*e) = n^e' by 4*e = e' };
+                         done;
+                         end;
+	(* 2^200 - 2^0 *) fe25519_mul' (!t1) (!t0) (!z2_100_0) (ghost n^(pow2 200 - pow2 100)) (ghost n^(pow2 100 - pow2 0));
+
+        assert { n^(pow2 200 - pow2 100) * n^(pow2 100 - pow2 0) = n^(pow2 200 - pow2 0)
+                by pow2 200 > pow2 150 > pow2 100 > pow2 0 };
+	(* 2^201 - 2^1 *) fe25519_square' (!t0) (!t1) (ghost n^(pow2 200 - pow2 0));
+        assert { let e  = pow2 200 - pow2 0 in
+                 let e' = pow2 201 - pow2 1 in n^e * n^e = n^(2*e) = n^e' by 2*e = e' };
+	(* 2^202 - 2^2 *) fe25519_square' (!t1) (!t0) (ghost n^(pow2 201 - pow2 1));
+
+                         abstract ensures { uint 32 (!t1) === n^(pow2 250 - pow2 50) }
+        assert { let e  = pow2 201 - pow2 1 in
+                 let e' = pow2 202 - pow2 2 in n^e * n^e = n^(2*e) = n^e' by 2*e = e' };
+	(* 2^250 - 2^50 *)for i = 1 to 24 do
+                           invariant { let e = pow2 (202+2*(i-1)) - pow2 (2+2*(i-1)) in
+                                       uint 32 (!t1) === n^e /\ e >= 0 }
+                           invariant {  forall i. 0 <= (!t0)[i] <= 255 }
+                           invariant {  forall i. 0 <= (!t1)[i] <= 255 }
+                           let e = pow2 (202+2*(i-1)) - pow2 (2+2*(i-1)) in
+                           fe25519_square' (!t0) (!t1) (ghost n^e);
+                           fe25519_square' (!t1) (!t0) (ghost n^(2*e));
+                           assert { let e' = pow2 (202+2*i) - pow2 (2+2*i) in n^(4*e) = n^e' by 4*e = e' };
+                         done;
+                         end;
+	(* 2^250 - 2^0 *) fe25519_mul' (!t0) (!t1) (!z2_50_0) (ghost n^(pow2 250 - pow2 50)) (ghost n^(pow2 50 - pow2 0));
+
+        assert { n^(pow2 250 - pow2 50) * n^(pow2 50 - pow2 0) = n^(pow2 250 - pow2 0) };
+	(* 2^251 - 2^1 *) fe25519_square' (!t1) (!t0) (ghost n^(pow2 250 - pow2 0));
+        assert { let e  = pow2 250 - pow2 0 in
+                 let e' = pow2 251 - pow2 1 in n^e * n^e = n^(2*e) = n^e' by 2*e = e' };
+	(* 2^252 - 2^2 *) fe25519_square' (!t0) (!t1) (ghost n^(pow2 251 - pow2 1));
+        assert { let e  = pow2 251 - pow2 1 in
+                 let e' = pow2 252 - pow2 2 in n^e * n^e = n^(2*e) = n^e' by 2*e = e' };
+	(* 2^253 - 2^3 *) fe25519_square' (!t1) (!t0) (ghost n^(pow2 252 - pow2 2));
+        assert { let e  = pow2 252 - pow2 2 in
+                 let e' = pow2 253 - pow2 3 in n^e * n^e = n^(2*e) = n^e' by 2*e = e' };
+	(* 2^254 - 2^4 *) fe25519_square' (!t0) (!t1) (ghost n^(pow2 253 - pow2 3));
+        assert { let e  = pow2 253 - pow2 3 in
+                 let e' = pow2 254 - pow2 4 in n^e * n^e = n^(2*e) = n^e' by 2*e = e' };
+	(* 2^255 - 2^5 *) fe25519_square' (!t1) (!t0) (ghost n^(pow2 254 - pow2 4));
+        assert { let e  = pow2 254 - pow2 4 in
+                 let e' = pow2 255 - pow2 5 in n^e * n^e = n^(2*e) = n^e' by 2*e = e' };
+	(* 2^255 - 21 *) fe25519_mul' r (!t1) (!z11) (ghost n^(pow2 255 - pow2 5)) (ghost n^(pow2 5 - 21));
+        assert { n^(pow2 255 - pow2 5) * n^(pow2 5 - 21) = n^(pow2 255 - 21) };
+  end;
+  (* use a ghost application to obtain the final result *)
+  ghost fe25519_mul_ry' g r (n^(p25519-2)) n;
+  (* somehow computing p25519 is sometimes difficult *)
+  assert { n*uint 32 r === n^(p25519-1) };
+  ghost if n === 0 then begin
+    for i = 1 to pow2 255-22 do
+      invariant { n^i === 0 }
+      assert { n^i * n === 0*n }
+    done
+  end else
+    assert { n*uint 32 r === 1 }
+
+(*
+let fe25519_invert(r x: address_space)
+  requires { forall n. not n === 0 -> n^(p25519-1) === 1 }
+  ensures { if uint 32 x === 0 then
+              uint 32 r === 0
+            else
+              uint 32 r * uint 32 x === 1 }
+  writes { r }
+= __fe25519_assign r x;
+  fe25519_invert_r r
+*)
+
+end

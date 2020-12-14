@@ -1,0 +1,127 @@
+(*
+general TODO:
+- memory stack invariance
+
+labels to investigate
+'AD
+'Q1
+*)
+module AVRcode
+
+use import avrmodel.AVRint
+use import int.Int
+use import int.EuclideanDivision
+use import bv.Pow2int
+use import common_lemmas.AvrModelLemmas
+use common_lemmas.BV_asr_Lemmas
+use bv.BV8
+use import ref.Ref
+
+use import int.Abs
+
+use avrmodel.Shadow as S
+
+constant p25519: int = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed
+
+let bigint_subp ()
+  requires { 32 <= uint 2 reg 22 < pow2 15 }
+  requires { 32 <= uint 2 reg 24 < pow2 15 }
+
+  requires {
+    let x_addr = uint 2 reg 22 in
+    let z_addr = uint 2 reg 24 in
+    z_addr <= x_addr \/ z_addr >= x_addr+32
+  }
+
+  ensures { uint 32 mem (old (uint 2 reg 24)) = pow2 256*reg[24] + old (uint 32 mem (uint 2 reg r22)) - p25519 }
+  ensures { reg[24] <= 1 }
+
+  ensures { forall i. mem[i] <> (old mem)[i] -> old (uint 2 reg 24) <= i < old (uint 2 reg 24+32) }
+  ensures { saved_registers (old reg) reg }
+=
+  movw r26 r22; (* load operand address a to x *)
+  movw r30 r24; (* load address of result to z *)
+
+'B:
+  ldi r21 0xed;
+
+  ld_inc r20 rX;
+  sub r20 r21;
+  st_inc rZ  r20;
+
+  ldi r21 0xff;
+
+S.init();
+abstract ensures { uint 30 mem (old (uint 2 reg rZ)) =
+?cf*pow2 240 + old (uint 30 mem (uint 2 reg rX)) - (pow2 240-1) - old (?cf) }
+ensures { forall i. i < old (uint 2 reg rZ) \/ i >= old (uint 2 reg rZ) + 30 -> mem[i] = (old mem)[i]}
+ensures { uint 2 reg rX = old (uint 2 reg rX) + 30 }
+ensures { uint 2 reg rZ = old (uint 2 reg rZ) + 30 }
+ensures { S.synchronized S.shadow reg }
+
+abstract ensures { uint 15 mem (old (uint 2 reg rZ)) =
+  ?cf*pow2 120 + (old (uint 15 mem (uint 2 reg rX))) - (pow2 120-1) - old (?cf) }
+  ensures { forall i. i < old (uint 2 reg rZ) \/ i >= old (uint 2 reg rZ) + 15 -> mem[i] = (old mem)[i]}
+  ensures { uint 2 reg rX = old (uint 2 reg rX) + 15 }
+  ensures { uint 2 reg rZ = old (uint 2 reg rZ) + 15 }
+  ensures { S.synchronized S.shadow reg }
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 01 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 02 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 03 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 04 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 05 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 06 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 07 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 08 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 09 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 10 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 11 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 12 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 13 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 14 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 15 *)
+   S.modify_r20();
+   S.modify_r26();
+   S.modify_r27();
+   S.modify_r30();
+   S.modify_r31();
+end;
+
+abstract ensures { uint 15 mem (old (uint 2 reg rZ)) =
+  ?cf*pow2 120 + (old (uint 15 mem (uint 2 reg rX))) - (pow2 120-1) - old (?cf) }
+  ensures { forall i. i < old (uint 2 reg rZ) \/ i >= old (uint 2 reg rZ) + 15 -> mem[i] = (old mem)[i]}
+  ensures { uint 2 reg rX = old (uint 2 reg rX) + 15 }
+  ensures { uint 2 reg rZ = old (uint 2 reg rZ) + 15 }
+  ensures { S.synchronized S.shadow reg }
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 16 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 17 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 18 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 19 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 20 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 21 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 22 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 23 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 24 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 25 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 26 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 27 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 28 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 29 *)
+   ld_inc r20 rX; sbc r20 r21; st_inc rZ r20; (* 30 *)
+   S.modify_r20();
+   S.modify_r26();
+   S.modify_r27();
+   S.modify_r30();
+   S.modify_r31();
+end;
+end;
+
+  ldi r21 0x7f;
+  ld_inc r20 rX;
+  sbc r20 r21;
+  st_inc rZ  r20;
+
+  clr r24;
+  adc r24 r24;
+
+end

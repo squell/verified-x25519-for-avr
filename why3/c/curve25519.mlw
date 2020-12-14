@@ -1,0 +1,282 @@
+module Montgomery
+
+use import int.Int
+
+(* Formulas for computing the X-coordinates of EC operations, from Montgomery's paper *)
+
+type ratio = { x: int; z: int }
+
+constant a: int = 486662
+
+function sqr(x:int): int = x*x
+
+(* computes X_m+n given X_m, X_n and X_m-n; note the common factor 4,
+   which we do to be able to use a strict equivalence relation later *)
+function add (m n mn: ratio): ratio
+  = { x = 4*z mn*sqr(x m*x n - z m*z n); z = 4*x mn*sqr(x m*z n - z m*x n) }
+
+function double (n: ratio): ratio
+  = { x = sqr(sqr(x n) - sqr(z n)); z = 4*x n*z n * (sqr(x n) + a*x n*z n + sqr(z n)) }
+
+predicate (~) (p q: ratio)
+  = x p*z q = x q*z p
+
+end
+
+module Curve25519
+
+use import int.Int
+use import int.EuclideanDivision
+use import bv.Pow2int
+use import bv.BV8
+use import avrmodel.AVRint
+use import ref.Ref
+
+use import fe25519.Fe25519
+use import fe25519.Fe25519_invert
+
+function (?) (w: address_space): int = uint 32 w
+
+let ghost (?) (w: address_space): int
+  ensures { result = ?w }
+= AVRint.uint 32 w 0
+
+(*
+static const fe25519 _121666 = {{0x42, 0xDB, 0x01, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
+*)
+
+predicate __static_init (k: address_space) =
+  k[0] = 0x42 /\ k[1] = 0xDB /\ k[2] = 0x01 /\ forall i. 3 <= i < 32 -> k[i] = 0
+
+let __static_init ()
+  ensures { __static_init _121666 }
+= let k = _121666 in
+  set_byte k 0 0x42; set_byte k 1 0xDB; set_byte k 2 0x01; set_byte k 3 0x00;
+  set_word k 4 0x0000; set_word k 6 0x0000;
+  set_word k 8 0x0000; set_word k 10 0x0000; set_word k 12 0x0000; set_word k 14 0x0000;
+  set_word k 16 0x0000; set_word k 18 0x0000; set_word k 20 0x0000; set_word k 22 0x0000;
+  set_word k 24 0x0000; set_word k 26 0x0000; set_word k 28 0x0000; set_word k 30 0x0000
+
+
+(*
+static void work_cswap(fe25519 *work, char b)
+{
+  fe25519 t;
+  fe25519_setzero(&t);
+  fe25519_cmov(&t, work+1, b);
+  fe25519_cmov(work+1, work+3, b);
+  fe25519_cmov(work+3, &t, b);
+  fe25519_cmov(&t, work+2, b);
+  fe25519_cmov(work+2, work+4, b);
+  fe25519_cmov(work+4, &t, b);
+}
+*)
+
+let work_cswap (work0 work1 work2 work3 work4: address_space) (b: int)
+  writes { work1, work2, work3, work4 }
+  requires { b = 0 \/ b = 1 }
+  ensures { (?work1, ?work2) = old (if b=0 then (?work1, ?work2) else (?work3, ?work4)) }
+  ensures { (?work3, ?work4) = old (if b=0 then (?work3, ?work4) else (?work1, ?work2)) }
+= let t = mk_space() in
+  fe25519_setzero (!t);
+  fe25519_cmov (!t) work1 b;
+  fe25519_cmov work1 work3 b;
+  fe25519_cmov work3 (!t) b;
+  fe25519_cmov (!t) work2 b;
+  fe25519_cmov work2 work4 b;
+  fe25519_cmov work4 (!t) b
+
+(*
+static void ladderstep(fe25519 *work)
+{
+  fe25519 t[2];
+  fe25519 *t1 = &t[0];
+  fe25519 *t2 = &t[1];
+  fe25519 *x0 = work;
+  fe25519 *xp = work+1;
+  fe25519 *zp = work+2;
+  fe25519 *xq = work+3;
+  fe25519 *zq = work+4;
+
+  fe25519_add(t1, xq, zq);
+  fe25519_sub(xq, xq, zq);
+  fe25519_add(zq, xp, zp);
+  fe25519_sub(xp, xp, zp);
+  fe25519_mul(t1, t1, xp);
+  fe25519_mul(xq, xq, zq);
+  fe25519_square(zq, zq);
+  fe25519_square(xp, xp);
+  fe25519_sub(t2, zq, xp);
+  fe25519_mul121666(zp, t2);
+  fe25519_add(zp, zp, xp);
+  fe25519_mul(zp, t2, zp);
+  fe25519_mul(xp, zq, xp);
+  fe25519_sub(zq, t1, xq);
+  fe25519_square(zq, zq);
+  fe25519_mul(zq, zq, x0);
+  fe25519_add(xq, t1, xq);
+  fe25519_square(xq, xq);
+}
+*)
+
+use import Montgomery as M
+
+(* equivalence relationship relating two x-coordinates stored as X:Z *)
+predicate (~) (a b: ratio) =
+  a.x*b.z === b.x*a.z
+
+(* strict equivalence *)
+predicate (=~=) (a b: ratio) =
+  a.x === b.x /\ a.z === b.z
+
+goal eqv_implication:
+  forall a b. a =~= b -> a ~ b
+
+lemma congruence_mul:
+  forall a b a' b'. a === a' -> b === b' ->
+    a*b === a'*b'
+
+lemma congruence_add:
+  forall a b a' b'. a === a' -> b === b' ->
+    a+b === a'+b'
+
+lemma congruence_sub:
+  forall a b a' b'. a === a' -> b === b' ->
+    a-b === a'-b'
+
+lemma congruence_trans:
+  forall a b c. a === b -> b === c -> a === c
+
+(* Ladder diagram from Bernstein's paper *)
+function ladderstep (n m: ratio) (x_mn: int): (ratio, ratio)
+  = let a24 = 121666 in
+    let a = x n+z n in
+    let b = x n-z n in
+    let aa = a*a in
+    let bb = b*b in
+    let xnzn4 = aa - bb in
+    let c = x m+z m in
+    let d = x m-z m in
+    let cb = c*b in
+    let da = d*a in
+    let e = cb+da in
+    let f = cb-da in
+    let d = x m-z m in
+    ({ x = aa*bb; z = xnzn4*(bb + a24*xnzn4) },
+     { x = e*e;   z = f*f*x_mn })
+
+(* for readabilty *)
+function (??) (pair: (address_space,address_space)): ratio =
+  let (p,q) = pair in { x=(?p); z=(?q) }
+
+(* "quick" and dirty proof -- this proof would benefit from breaking up into blocks *)
+
+let ladderstep (work0 work1 work2 work3 work4: address_space)
+  requires { __static_init _121666 }
+  writes { work1, work2, work3, work4 }
+  ensures { let p0   = { x=(?work0); z=1 } in
+            let p_n  = old (??(work1,work2)) in
+            let p_m  = old (??(work3,work4)) in
+            let p_2n =     (??(work1,work2)) in
+            let p_mn =     (??(work3,work4)) in
+            (p_2n =~= M.double p_n
+                by let orig = M.double p_n in
+                   p_2n.x === orig.x /\ p_2n.z === orig.z) /\
+            (p_mn =~= M.add p_m p_n p0
+                by let orig = M.add p_m p_n p0 in
+                   p_mn.x === orig.x /\ p_mn.z === orig.z)
+(*
+                   p_mn ~ { x=4*orig.x; z=4*orig.z } ~ orig
+                by p_mn.x === 4*orig.x /\ p_mn.z === 4*orig.z)
+*)
+  }
+
+= let ghost x_mn = (?work0) in
+  let ghost z_mn = 1 in
+  let ghost x_n = ?work1 in
+  let ghost z_n = ?work2 in
+  let ghost x_m = ?work3 in
+  let ghost z_m = ?work4 in
+
+  let t1 = !(mk_space()) in
+  let t2 = !(mk_space()) in
+  let x0 = work0 in
+  let xp = work1 in
+  let zp = work2 in
+  let xq = work3 in
+  let zq = work4 in
+
+  abstract
+  ensures { ?xp === sqr(sqr x_n - sqr z_n) by
+            ?xp === sqr(x_n + z_n)*sqr(x_n - z_n) = sqr(sqr x_n - sqr z_n) }
+  ensures { ?zp === 4*x_n*z_n * (4*x_n*z_n*121666 + sqr(x_n - z_n)) }
+  ensures { ?xq === 4 * z_mn * sqr(x_m*x_n - z_m*z_n) by
+            ?xq === z_mn * sqr(2*(x_m*x_n - z_m*z_n)) by
+            ?xq === z_mn * sqr((x_m - z_m)*(x_n + z_n) + (x_m + z_m)*(x_n - z_n)) }
+  ensures { ?zq === 4 * x_mn * sqr(x_m*z_n - z_m*x_n) by
+            ?zq === x_mn * sqr(2*(x_m*z_n - z_m*x_n)) by
+            ?zq === x_mn * sqr((x_m - z_m)*(x_n + z_n) - (x_m + z_m)*(x_n - z_n)) }
+
+  assert { forall x y. sqr(x + y)*sqr(x - y) = sqr(sqr x - sqr y) };
+  assert { forall y. sqr(2*y) = 4*sqr y };
+
+  fe25519_add t1 xq zq;
+  fe25519_sub_rx xq zq;
+  fe25519_add zq xp zp;
+  fe25519_sub_rx xp zp;
+  fe25519_mul_rx t1 xp;
+  fe25519_mul_rx xq zq;
+  fe25519_square_rx zq;
+  fe25519_square_rx xp;
+  assert { ?t1 === (x_m + z_m)*(x_n - z_n) };
+  assert { ?xq === (x_m - z_m)*(x_n + z_n) };
+  assert { ?zq === sqr(x_n + z_n) };
+  assert { ?xp === sqr(x_n - z_n) };
+  fe25519_sub t2 zq xp;
+  assert { ?t2 === 4*x_n*z_n
+           by ?t2 === sqr(x_n + z_n) - sqr(x_n - z_n) = 4*x_n*z_n };
+  fe25519_mul121666 zp t2;
+  assert { ?zp === 4*x_n*z_n*121666 by
+           ?zp === ?t2*121666 === 4*x_n*z_n*121666 };
+  fe25519_add_rx zp xp;
+  assert { ?zp === 4*x_n*z_n*121666 + sqr(x_n - z_n) };
+  fe25519_mul_ry zp t2;
+  assert { ?zp === 4*x_n*z_n * (4*x_n*z_n*121666 + sqr(x_n - z_n)) };
+  assert { ?xp === sqr(x_n - z_n) };
+'B:
+  fe25519_mul_ry xp zq;
+  assert { ?xp === sqr(x_n + z_n)*sqr(x_n - z_n)
+           by ?xp === ?zq*at ?xp 'B
+                  === ?zq*sqr(x_n - z_n) === sqr(x_n + z_n)*sqr(x_n - z_n)
+         };
+
+  fe25519_sub zq t1 xq;
+  assert { ?zq === (x_m + z_m)*(x_n - z_n) - (x_m - z_m)*(x_n + z_n)
+           by ?zq === ?t1 - ?xq === (x_m + z_m)*(x_n - z_n) - (x_m - z_m)*(x_n + z_n) };
+  fe25519_square_rx zq;
+  assert { ?zq === sqr((x_m + z_m)*(x_n - z_n) - (x_m - z_m)*(x_n + z_n)) };
+'B:
+  fe25519_mul_rx zq x0;
+  assert { ?zq === x_mn*sqr((x_m + z_m)*(x_n - z_n) - (x_m - z_m)*(x_n + z_n))
+           by ?zq === at ?zq 'B * ?x0 === x_mn*sqr((x_m + z_m)*(x_n - z_n) - (x_m - z_m)*(x_n + z_n)) };
+'B:
+  fe25519_add_ry xq t1;
+  assert { ?xq === (x_m + z_m)*(x_n - z_n) + (x_m - z_m)*(x_n + z_n)
+           by ?xq === ?t1 + at ?xq 'B === (x_m + z_m)*(x_n - z_n) + (x_m - z_m)*(x_n + z_n) };
+  fe25519_square_rx xq;
+  assert { ?xq === sqr((x_m + z_m)*(x_n - z_n) + (x_m - z_m)*(x_n + z_n)) };
+  end;
+  (* asserts added to remove dependence on Alt-Ergo *)
+  assert { forall x_n x_m z_n z_m x_mn z_mn.
+             4*z_mn*sqr(x_m*x_n - z_m*z_n) = (M.add {x=x_m;z=z_m} {x=x_n;z=z_n} {x=x_mn;z=z_mn}).x /\
+             4*x_mn*sqr(x_m*z_n - z_m*x_n) = (M.add {x=x_m;z=z_m} {x=x_n;z=z_n} {x=x_mn;z=z_mn}).z /\ 
+             sqr(sqr(x_n) - sqr(z_n)) = (M.double {x=x_n;z=z_n}).x /\
+             4*x_n*z_n*(sqr(x_n) + a*x_n*z_n + sqr(z_n)) = (M.double {x=x_n;z=z_n}).z
+  };
+
+(* a warning: not all ratios are x-coordinates of valid points *)
+goal degenerate:
+  (forall p. (p.x === 0 /\ p.z === 0) <-> forall q. p ~ q)
+    by forall p. (not p.z === 0 -> not p ~ {x=1; z=0}) /\ (not p.x === 0 -> not p ~ {x=0; z=1})
+
+end

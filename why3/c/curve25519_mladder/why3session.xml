@@ -1,0 +1,919 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE why3session PUBLIC "-//Why3//proof session v5//EN"
+"http://why3.lri.fr/why3session.dtd">
+<why3session shape_version="4">
+<prover id="0" name="CVC3" version="2.4.1" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="1" name="CVC4" version="1.6" alternative="noBV" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="2" name="CVC4" version="1.6" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="3" name="Eprover" version="2.0" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="4" name="Z3" version="4.6.0" alternative="noBV" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="5" name="CVC4" version="1.4" alternative="noBV" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="7" name="CVC4" version="1.4" timelimit="13" steplimit="0" memlimit="8000"/>
+<file name="../curve25519_mladder.mlw" expanded="true">
+<theory name="Curve25519_mladder" sum="bd124b2afffec048740f913563b643e7" expanded="true">
+ <goal name="WP_parameter div_mult" expl="VC for div_mult">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter div_mult.1" expl="postcondition">
+  <proof prover="2"><result status="valid" time="3.42"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="monty_add_commutes" expl="">
+ <proof prover="0"><result status="valid" time="0.10"/></proof>
+ </goal>
+ <goal name="eqv_monty_double" expl="">
+ <transf name="split_goal_wp">
+  <goal name="eqv_monty_double.1" expl="">
+  <proof prover="3"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="eqv_monty_double.2" expl="">
+  <proof prover="1"><result status="valid" time="0.25"/></proof>
+  </goal>
+  <goal name="eqv_monty_double.3" expl="">
+  <proof prover="3"><result status="valid" time="0.09"/></proof>
+  </goal>
+  <goal name="eqv_monty_double.4" expl="">
+  <proof prover="1"><result status="valid" time="0.15"/></proof>
+  </goal>
+  <goal name="eqv_monty_double.5" expl="">
+  <proof prover="2"><result status="valid" time="0.27"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="eqv_monty_add" expl="">
+ <transf name="split_goal_wp">
+  <goal name="eqv_monty_add.1" expl="">
+  <proof prover="3"><result status="valid" time="0.09"/></proof>
+  </goal>
+  <goal name="eqv_monty_add.2" expl="">
+  <proof prover="3"><result status="valid" time="0.08"/></proof>
+  </goal>
+  <goal name="eqv_monty_add.3" expl="">
+  <proof prover="3"><result status="valid" time="0.09"/></proof>
+  </goal>
+  <goal name="eqv_monty_add.4" expl="">
+  <proof prover="3"><result status="valid" time="0.09"/></proof>
+  </goal>
+  <goal name="eqv_monty_add.5" expl="">
+  <proof prover="1"><result status="valid" time="0.20"/></proof>
+  </goal>
+  <goal name="eqv_monty_add.6" expl="">
+  <proof prover="1"><result status="valid" time="0.19"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="mask_shift" expl="">
+ <transf name="split_goal_wp">
+  <goal name="mask_shift.1" expl="">
+  <proof prover="2"><result status="valid" time="0.08"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter bit_select" expl="VC for bit_select">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter bit_select.1" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.08"/></proof>
+  </goal>
+  <goal name="WP_parameter bit_select.2" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter bit_select.3" expl="assertion">
+  <proof prover="1"><result status="valid" time="0.13"/></proof>
+  </goal>
+  <goal name="WP_parameter bit_select.4" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter bit_select.4.1" expl="assertion">
+   <proof prover="3"><result status="valid" time="4.32"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter bit_select.5" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter bit_select.6" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.16"/></proof>
+  </goal>
+  <goal name="WP_parameter bit_select.7" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter bit_select.7.1" expl="VC for bit_select">
+   <proof prover="3"><result status="valid" time="4.35"/></proof>
+   </goal>
+   <goal name="WP_parameter bit_select.7.2" expl="VC for bit_select">
+   <proof prover="1"><result status="valid" time="0.10"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter bit_select.8" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter bit_select.9" expl="assertion">
+  <proof prover="3"><result status="valid" time="0.14"/></proof>
+  </goal>
+  <goal name="WP_parameter bit_select.10" expl="postcondition">
+  <proof prover="4"><result status="valid" time="0.09"/></proof>
+  </goal>
+  <goal name="WP_parameter bit_select.11" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter bit_select.11.1" expl="VC for bit_select">
+   <proof prover="1"><result status="valid" time="0.22"/></proof>
+   </goal>
+   <goal name="WP_parameter bit_select.11.2" expl="VC for bit_select">
+   <proof prover="3"><result status="valid" time="0.09"/></proof>
+   </goal>
+   <goal name="WP_parameter bit_select.11.3" expl="VC for bit_select">
+   <proof prover="1"><result status="valid" time="0.04"/></proof>
+   </goal>
+   <goal name="WP_parameter bit_select.11.4" expl="VC for bit_select">
+   <proof prover="0"><result status="valid" time="0.25"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter bit_select.12" expl="assertion">
+  <proof prover="3"><result status="valid" time="0.37"/></proof>
+  </goal>
+  <goal name="WP_parameter bit_select.13" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.19"/></proof>
+  </goal>
+  <goal name="WP_parameter bit_select.14" expl="postcondition">
+  <proof prover="1"><result status="valid" time="1.05"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter pow_squeeze" expl="VC for pow_squeeze">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter pow_squeeze.1" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.14"/></proof>
+  </goal>
+  <goal name="WP_parameter pow_squeeze.2" expl="postcondition">
+  <proof prover="1"><result status="valid" time="0.14"/></proof>
+  </goal>
+  <goal name="WP_parameter pow_squeeze.3" expl="postcondition">
+  <proof prover="0"><result status="valid" time="0.56"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter mladder" expl="VC for mladder">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter mladder.1" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.14"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.2" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.18"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.3" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.18"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.4" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.20"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.5" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.6" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter mladder.6.1" expl="assertion">
+   <proof prover="1"><result status="valid" time="0.30"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter mladder.7" expl="postcondition">
+  <proof prover="0"><result status="valid" time="0.39"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.8" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.9" expl="loop invariant init">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter mladder.9.1" expl="loop invariant init">
+   <proof prover="1"><result status="valid" time="0.32"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.9.2" expl="loop invariant init">
+   <proof prover="1"><result status="valid" time="0.32"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.9.3" expl="loop invariant init">
+   <proof prover="1"><result status="valid" time="0.27"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.9.4" expl="loop invariant init">
+   <proof prover="1"><result status="valid" time="0.33"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.9.5" expl="loop invariant init">
+   <proof prover="1"><result status="valid" time="0.10"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter mladder.10" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.11" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.25"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.12" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.13" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.26"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.14" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.22"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.15" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.35"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.16" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.11"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.17" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.08"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.18" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.34"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.19" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.34"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.20" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.35"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.21" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.35"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.22" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter mladder.22.1" expl="assertion">
+   <proof prover="4"><result status="valid" time="1.36"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter mladder.23" expl="assertion">
+  <proof prover="1"><result status="valid" time="0.75"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.24" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.09"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.25" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.26" expl="assertion">
+  <proof prover="1"><result status="valid" time="11.65"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.27" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.38"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.28" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.39"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.29" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.38"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.30" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.38"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.31" expl="precondition">
+  <proof prover="2"><result status="valid" time="12.88"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.32" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.33" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter mladder.33.1" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.14"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.2" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.13"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.3" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.14"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.4" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.13"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.5" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.12"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.6" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.11"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.7" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.11"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.8" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.12"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.9" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.10" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.11" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.12" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.13" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.13"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.14" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.12"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.15" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.14"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.16" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.13"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.17" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.89"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.18" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.89"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.19" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.14"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.20" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.14"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.21" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.12"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.22" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.12"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.23" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.13"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.24" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.13"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.25" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.06"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.26" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.27" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.28" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.04"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.29" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.13"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.30" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.13"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.31" expl="VC for mladder">
+   <proof prover="7"><result status="valid" time="0.14"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.33.32" expl="VC for mladder">
+   <proof prover="7"><result status="valid" time="0.16"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter mladder.34" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.45"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.35" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.47"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.36" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter mladder.36.1" expl="assertion">
+   <proof prover="2"><result status="valid" time="0.83"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.36.2" expl="assertion">
+   <proof prover="0"><result status="valid" time="4.65"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter mladder.37" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter mladder.37.1" expl="VC for mladder">
+   <proof prover="1"><result status="valid" time="0.69"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.2" expl="VC for mladder">
+   <proof prover="1"><result status="valid" time="0.71"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.3" expl="VC for mladder">
+   <proof prover="1"><result status="valid" time="0.70"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.4" expl="VC for mladder">
+   <proof prover="1"><result status="valid" time="0.71"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.5" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.72"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.6" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.76"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.7" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.74"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.8" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.75"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.9" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.80"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.10" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.67"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.11" expl="VC for mladder">
+   <proof prover="1"><result status="valid" time="0.62"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.12" expl="VC for mladder">
+   <proof prover="1"><result status="valid" time="0.63"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.13" expl="VC for mladder">
+   <proof prover="7"><result status="valid" time="0.79"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.14" expl="VC for mladder">
+   <proof prover="7"><result status="valid" time="0.79"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.15" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.63"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.16" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.63"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.17" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.70"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.18" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="0.70"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.19" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="1.05"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.37.20" expl="VC for mladder">
+   <proof prover="2"><result status="valid" time="1.04"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter mladder.38" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter mladder.38.1" expl="assertion">
+   <proof prover="5"><result status="valid" time="0.57"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.38.2" expl="assertion">
+   <proof prover="7"><result status="valid" time="0.81"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.38.3" expl="assertion">
+   <proof prover="2"><result status="valid" time="0.90"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.38.4" expl="assertion">
+   <proof prover="2"><result status="valid" time="0.89"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.38.5" expl="assertion">
+   <proof prover="5"><result status="valid" time="0.72"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.38.6" expl="assertion">
+   <proof prover="1"><result status="valid" time="0.18"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter mladder.39" expl="precondition">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter mladder.39.1" expl="VC for mladder">
+   <proof prover="1"><result status="valid" time="0.74"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.39.2" expl="VC for mladder">
+   <proof prover="0"><result status="valid" time="0.47"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter mladder.40" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter mladder.40.1" expl="assertion">
+   <proof prover="1"><result status="valid" time="0.70"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.40.2" expl="assertion">
+   <proof prover="0"><result status="valid" time="0.49"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.40.3" expl="assertion">
+   <proof prover="1"><result status="valid" time="0.87"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.40.4" expl="assertion">
+   <proof prover="1"><result status="valid" time="0.79"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter mladder.41" expl="loop invariant preservation">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter mladder.41.1" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="1.21"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.41.2" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="1.22"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.41.3" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="1.21"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.41.4" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="1.22"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.41.5" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="0.08"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.41.6" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="1.18"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.41.7" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="1.20"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.41.8" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="1.36"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.41.9" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="1.34"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.41.10" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="0.07"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter mladder.42" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.18"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.43" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.15"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.44" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.60"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.45" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.77"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.46" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.73"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.47" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.63"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.48" expl="loop variant decrease">
+  <proof prover="1"><result status="valid" time="0.07"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.49" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.50" expl="loop invariant preservation">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter mladder.50.1" expl="loop invariant preservation">
+   <proof prover="0" timelimit="300"><result status="valid" time="54.87"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.50.2" expl="loop invariant preservation">
+   <proof prover="0" timelimit="300"><result status="valid" time="55.55"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.50.3" expl="loop invariant preservation">
+   <proof prover="0" timelimit="300"><result status="valid" time="14.41"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.50.4" expl="loop invariant preservation">
+   <proof prover="0" timelimit="300"><result status="valid" time="14.43"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.50.5" expl="loop invariant preservation">
+   <proof prover="0" timelimit="300"><result status="valid" time="0.47"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.50.6" expl="loop invariant preservation">
+   <proof prover="0" timelimit="300"><result status="valid" time="55.02"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.50.7" expl="loop invariant preservation">
+   <proof prover="0" timelimit="300"><result status="valid" time="53.96"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.50.8" expl="loop invariant preservation">
+   <proof prover="0" timelimit="300"><result status="valid" time="14.31"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.50.9" expl="loop invariant preservation">
+   <proof prover="0" timelimit="300"><result status="valid" time="14.20"/></proof>
+   </goal>
+   <goal name="WP_parameter mladder.50.10" expl="loop invariant preservation">
+   <proof prover="0" timelimit="300"><result status="valid" time="0.44"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter mladder.51" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.52" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.46"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.53" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.50"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.54" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.47"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.55" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.40"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.56" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.25"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.57" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.37"/></proof>
+  </goal>
+  <goal name="WP_parameter mladder.58" expl="postcondition">
+  <proof prover="1"><result status="valid" time="0.11"/></proof>
+  </goal>
+ </transf>
+ </goal>
+</theory>
+<theory name="Curve25519_crypto" sum="62fee4394e244472c5fa69c7d8401267" expanded="true">
+ <goal name="semi_eq_trans" expl="">
+ <proof prover="0"><result status="valid" time="1.02"/></proof>
+ </goal>
+ <goal name="WP_parameter clamp_limits" expl="VC for clamp_limits">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter clamp_limits.1" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter clamp_limits.2" expl="postcondition">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter clamp_limits.2.1" expl="VC for clamp_limits">
+   <proof prover="0"><result status="valid" time="0.62"/></proof>
+   </goal>
+   <goal name="WP_parameter clamp_limits.2.2" expl="VC for clamp_limits">
+   <proof prover="0"><result status="valid" time="0.11"/></proof>
+   </goal>
+   <goal name="WP_parameter clamp_limits.2.3" expl="VC for clamp_limits">
+   <proof prover="0"><result status="valid" time="0.11"/></proof>
+   </goal>
+  </transf>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="Fermat.p_prime" expl="">
+ <proof prover="3"><result status="valid" time="0.02"/></proof>
+ </goal>
+ <goal name="WP_parameter crypto_scalarmult_curve25519" expl="VC for crypto_scalarmult_curve25519">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter crypto_scalarmult_curve25519.1" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.2" expl="VC for crypto_scalarmult_curve25519">
+  <proof prover="1"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.3" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.18"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.4" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.5" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.17"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.6" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.18"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.7" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.20"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.8" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.17"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.9" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.16"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.10" expl="VC for crypto_scalarmult_curve25519">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.10.1" expl="VC for crypto_scalarmult_curve25519">
+   <proof prover="0"><result status="valid" time="0.18"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.11" expl="precondition">
+  <proof prover="0" timelimit="130"><result status="valid" time="0.12"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.12" expl="precondition">
+  <proof prover="0" timelimit="30"><result status="valid" time="0.12"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.13" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.12"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.14" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.35"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.15" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.15.1" expl="VC for crypto_scalarmult_curve25519">
+   <transf name="compute_in_goal">
+    <goal name="WP_parameter crypto_scalarmult_curve25519.15.1.1" expl="VC for crypto_scalarmult_curve25519">
+    <proof prover="2"><result status="valid" time="4.19"/></proof>
+    </goal>
+   </transf>
+   </goal>
+   <goal name="WP_parameter crypto_scalarmult_curve25519.15.2" expl="VC for crypto_scalarmult_curve25519">
+   <transf name="compute_in_goal">
+    <goal name="WP_parameter crypto_scalarmult_curve25519.15.2.1" expl="VC for crypto_scalarmult_curve25519">
+    <proof prover="2"><result status="valid" time="0.32"/></proof>
+    </goal>
+   </transf>
+   </goal>
+   <goal name="WP_parameter crypto_scalarmult_curve25519.15.3" expl="VC for crypto_scalarmult_curve25519">
+   <transf name="compute_in_goal">
+    <goal name="WP_parameter crypto_scalarmult_curve25519.15.3.1" expl="VC for crypto_scalarmult_curve25519">
+    <proof prover="2"><result status="valid" time="2.80"/></proof>
+    </goal>
+   </transf>
+   </goal>
+   <goal name="WP_parameter crypto_scalarmult_curve25519.15.4" expl="VC for crypto_scalarmult_curve25519">
+   <proof prover="7"><result status="valid" time="0.19"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.16" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.16.1" expl="assertion">
+   <proof prover="2"><result status="valid" time="3.82"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.17" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.17.1" expl="VC for crypto_scalarmult_curve25519">
+   <transf name="compute_in_goal">
+    <goal name="WP_parameter crypto_scalarmult_curve25519.17.1.1" expl="VC for crypto_scalarmult_curve25519">
+    <proof prover="2"><result status="valid" time="0.94"/></proof>
+    </goal>
+   </transf>
+   </goal>
+   <goal name="WP_parameter crypto_scalarmult_curve25519.17.2" expl="VC for crypto_scalarmult_curve25519">
+   <proof prover="2"><result status="valid" time="0.31"/></proof>
+   </goal>
+   <goal name="WP_parameter crypto_scalarmult_curve25519.17.3" expl="VC for crypto_scalarmult_curve25519">
+   <transf name="compute_in_goal">
+    <goal name="WP_parameter crypto_scalarmult_curve25519.17.3.1" expl="VC for crypto_scalarmult_curve25519">
+    <proof prover="2"><result status="valid" time="0.34"/></proof>
+    </goal>
+   </transf>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.18" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.18.1" expl="assertion">
+   <proof prover="0"><result status="valid" time="0.27"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.19" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.19.1" expl="VC for crypto_scalarmult_curve25519">
+   <proof prover="0"><result status="valid" time="0.36"/></proof>
+   </goal>
+   <goal name="WP_parameter crypto_scalarmult_curve25519.19.2" expl="VC for crypto_scalarmult_curve25519">
+   <proof prover="4"><result status="valid" time="0.02"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.20" expl="assertion">
+  <proof prover="2"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.21" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.21.1" expl="assertion">
+   <proof prover="5"><result status="valid" time="1.52"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.22" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.22.1" expl="assertion">
+   <transf name="compute_in_goal">
+    <goal name="WP_parameter crypto_scalarmult_curve25519.22.1.1" expl="assertion">
+    <proof prover="2"><result status="valid" time="0.42"/></proof>
+    </goal>
+   </transf>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.23" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.23.1" expl="assertion">
+   <proof prover="0"><result status="valid" time="0.26"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.24" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.24.1" expl="assertion">
+   <transf name="split_goal_wp">
+    <goal name="WP_parameter crypto_scalarmult_curve25519.24.1.1" expl="assertion">
+    <proof prover="1"><result status="valid" time="4.21"/></proof>
+    </goal>
+   </transf>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.25" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.25.1" expl="assertion">
+   <proof prover="0"><result status="valid" time="0.29"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.26" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.26.1" expl="assertion">
+   <proof prover="0"><result status="valid" time="0.29"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.27" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.27.1" expl="assertion">
+   <proof prover="4"><result status="valid" time="0.44"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.28" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.38"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.29" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.38"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.30" expl="VC for crypto_scalarmult_curve25519">
+  <proof prover="0" timelimit="130"><result status="valid" time="11.28"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.31" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.24"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.32" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.24"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.33" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.26"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.34" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.35" expl="precondition">
+  <proof prover="0" timelimit="300"><result status="valid" time="0.27"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.36" expl="precondition">
+  <proof prover="1" timelimit="300"><result status="valid" time="8.88"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.37" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.30"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.38" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.45"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.39" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.30"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.40" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.32"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.41" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.41.1" expl="assertion">
+   <proof prover="1"><result status="valid" time="0.33"/></proof>
+   </goal>
+   <goal name="WP_parameter crypto_scalarmult_curve25519.41.2" expl="VC for crypto_scalarmult_curve25519">
+   <proof prover="3" timelimit="21"><result status="valid" time="0.12"/></proof>
+   </goal>
+   <goal name="WP_parameter crypto_scalarmult_curve25519.41.3" expl="VC for crypto_scalarmult_curve25519">
+   <proof prover="3" timelimit="21"><result status="valid" time="3.84"/></proof>
+   </goal>
+   <goal name="WP_parameter crypto_scalarmult_curve25519.41.4" expl="VC for crypto_scalarmult_curve25519">
+   <proof prover="3" timelimit="21"><result status="valid" time="11.65"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.42" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.34"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.43" expl="precondition">
+  <proof prover="3" timelimit="130"><result status="valid" time="0.02"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.44" expl="assertion">
+  <proof prover="3" timelimit="130"><result status="valid" time="1.07"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.45" expl="assertion">
+  <proof prover="5"><result status="valid" time="9.01"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.46" expl="assertion">
+  <proof prover="5"><result status="valid" time="7.63"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.47" expl="postcondition">
+  <proof prover="1"><result status="valid" time="0.12"/></proof>
+  </goal>
+  <goal name="WP_parameter crypto_scalarmult_curve25519.48" expl="postcondition">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter crypto_scalarmult_curve25519.48.1" expl="postcondition">
+   <proof prover="1"><result status="valid" time="0.12"/></proof>
+   </goal>
+   <goal name="WP_parameter crypto_scalarmult_curve25519.48.2" expl="postcondition">
+   <proof prover="3"><result status="valid" time="4.57"/></proof>
+   </goal>
+  </transf>
+  </goal>
+ </transf>
+ </goal>
+</theory>
+</file>
+</why3session>

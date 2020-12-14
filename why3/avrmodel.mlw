@@ -1,0 +1,1757 @@
+(*TODO: uint_bound order of args *)
+module AVRint
+
+use import int.Int
+use import int.EuclideanDivision
+use import ref.Ref
+use import map.Map
+use import bv.Pow2int
+
+(***** FORMAL MODEL OF AVR ******)
+
+type register = int
+
+constant r0: register = 0
+constant r1: register = 1
+constant r2: register = 2
+constant r3: register = 3
+constant r4: register = 4
+constant r5: register = 5
+constant r6: register = 6
+constant r7: register = 7
+constant r8: register = 8
+constant r9: register = 9
+constant r10: register = 10
+constant r11: register = 11
+constant r12: register = 12
+constant r13: register = 13
+constant r14: register = 14
+constant r15: register = 15
+constant r16: register = 16
+constant r17: register = 17
+constant r18: register = 18
+constant r19: register = 19
+constant r20: register = 20
+constant r21: register = 21
+constant r22: register = 22
+constant r23: register = 23
+constant r24: register = 24
+constant r25: register = 25
+constant r26: register = 26
+constant r27: register = 27
+constant r28: register = 28
+constant r29: register = 29
+constant r30: register = 30
+constant r31: register = 31
+
+type cpu_flag = { mutable value: bool }
+
+function (?) (x: cpu_flag): int = if x.value then 1 else 0
+
+let (?) (x: cpu_flag) ensures { result = ?x } = if x.value then 1 else 0
+
+val cf: cpu_flag
+
+type address_space = { mutable data: map int int }
+  invariant { forall i. 0 <= self.data[i] < 256 }
+
+function ([]) (r: address_space) (i: register): int = Map.get r.data i
+function ([<-]) (r: address_space) (i: register) (v: int): address_space
+  = { data = Map.set r.data i v }
+
+function get_uint_term (rlo: (address_space, int)) (i: int): int
+  = let (reg, lo) = rlo in pow2 (8*i) * reg[lo+i]
+
+clone sum.Sum as B with type container = (address_space, int), function f = get_uint_term
+
+function uint (w: int) (reg: address_space) (lo: register): int
+  = B.sum (reg,lo) 0 w
+
+val reg: address_space
+
+(* Returns the value stored the lowest 8 bits *)
+let clip (value: int): int
+ensures {result = mod value 256}
+= mod value 256
+
+(* Returns the value stored the lowest 16 bits *)
+let clip_word (value: int): int
+ensures {result = mod value 65536}
+= mod value 65536
+
+(* Returns the value stored the upper 8 bits of a 16 bit value *)
+let high (value: int): int
+requires { 0 <= value < 65536 }
+ensures { result = div value 256 }
+= div value 256
+
+(* reads a single byte from an address_space space *)
+let read_byte (reg: address_space) (src: int): int
+ensures {result = reg[src]}
+= Map.get reg.data src
+
+(* writes a single byte to an address_space space *)
+let set_byte (reg: address_space) (dst: int) (value: int): unit
+requires { 0 <= value < 256 }
+writes {reg}
+ensures {reg = old reg[dst <- value]}
+= reg.data <- Map.set reg.data dst value
+
+(* reads a 16 bit address from an address_space space *)
+let read_word (reg: address_space) (src: int): int
+  ensures {result = reg[src] + 256*reg[src+1]}
+= let low = read_byte reg src in
+  let high = read_byte reg (src+1) in
+  low + 256*high
+
+(* writes a 16 bit address to an address_space space *)
+let set_word (reg: address_space) (dst: int) (value: int): unit
+  requires { 0 <= value < 65536 }
+  writes {reg}
+  ensures {reg = old reg[dst <- mod value 256][dst+1 <- div value 256]}
+  ensures { uint 2 reg dst = value }
+= set_byte reg (dst+0) (clip value);
+  set_byte reg (dst+1) (high value)
+
+(* Returns the nth bit of the binary representation of b *)
+let ar_nth (value b: int): bool
+  ensures { result <-> mod (div value (pow2 b)) 2 <> 0 }
+= mod (div value (pow2 b)) 2 <> 0
+
+(* Makes a ghost copy of an address_space *)
+let ghost as_copy (avr: address_space): address_space
+  ensures { result.data = avr.data }
+= { data = avr.data }
+
+(*******************************************************************************
+ * NOP - No Operation
+ *
+ * Description:
+ * This instruction performs a single cycle No Operation.
+ *
+ * Syntax:
+ *    NOP
+ *
+ * Also see ST
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_NOP.html
+ *)
+let nop (): unit
+= ()
+
+(*******************************************************************************
+ * MOV - Copy Register
+ *
+ * Description:
+ * This instruction makes a copy of one register into another.
+ * The source register Rr is left unchanged, while the destination register Rd
+ * is loaded with a copy of Rr.
+ *
+ * Operation:
+ *    Rd ← Rr
+ *
+ * Syntax:
+ *    MOV Rd Rr
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31,
+ *    0 ≤ r ≤ 31
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_MOV.html
+ *)
+let mov (rd rr: register): unit
+  writes { reg }
+  ensures { reg = old reg[rd<-reg[rr]] }
+= let rrv  = read_byte reg rr in
+  set_byte reg rd rrv
+
+(*******************************************************************************
+ * LDI - Load Immediate
+ *
+ * Description:
+ * Loads an 8 bit constant directly to register 16 to 31.
+ *
+ * Operation:
+ *    Rd ← K
+ * Syntax:
+ *    LDI Rd,K
+ *
+ * Operands:
+ *    16 ≤ d ≤ 31,
+ *    0 ≤ K ≤ 255
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_LDI.html
+ *)
+let ldi (rd: register) (k: int): unit
+  writes { reg }
+  requires { 0 <= k < 256 }
+  ensures { reg = old reg[rd<-k] }
+= set_byte reg rd k
+
+(*******************************************************************************
+ * MUL- Multiply Unsigned
+ *
+ * Description:
+ * This instruction performs 8-bit × 8-bit → 16-bit unsigned multiplication.
+ * The multiplicand Rd and the multiplier Rr are two registers containing
+ * unsigned numbers.
+ * The 16-bit unsigned product is placed in R1 (high byte) and R0 (low byte).
+ * Note that if the multiplicand or the multiplier is selected from R0 or R1
+ * the result will overwrite those after multiplication.
+ *
+ * This instruction is not available in all devices. Refer to the device specific instruction set summary.
+ *
+ * Operation:
+ *    R1:R0 ← Rd × Rr(unsigned ← unsigned × unsigned)
+ *
+ * Syntax:
+ *    MUL Rd,Rr
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31,
+ *    0 ≤ r ≤ 31
+ *
+ * C: R15
+ * Set if bit 15 of the result is set; cleared otherwise
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_MUL.html
+ *)
+let mul (rd rr: register): unit
+  writes { cf }
+  writes { reg }
+  ensures { let p = old (reg[rd]*reg[rr]) in reg = (old reg)[0 <- mod p 256][1 <- div p 256] }
+  ensures { let p = old (reg[rd]*reg[rr]) in ?cf = div p (pow2 15) }
+= let rdv  = read_byte reg rd in
+  let rrv  = read_byte reg rr in
+  let res  = rdv * rrv in
+  set_byte reg 0 (clip res);
+  set_byte reg 1 (high res);
+  cf.value <- ar_nth res 15
+
+(*******************************************************************************
+ * ADD - Add without Carry
+ *
+ * Description:
+ * Adds two registers without the C flag and places the result in the
+ * destination register Rd.
+ *
+ * Operation:
+ *    Rd ← Rd + Rr
+ *
+ * Syntax:
+ *    ADD Rd Rr
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31,
+ *    0 ≤ r ≤ 31
+ *
+ * C: Rd7 • Rr7 + Rr7 • R7¯ + R7¯ • Rd7
+ * Set if there was carry from the MSB of the result; cleared otherwise.
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_ADD.html
+ *)
+let add (rd rr: register): unit
+ writes { cf }
+ writes { reg }
+ ensures { reg = old reg[rd <- mod (old (reg[rd] + reg[rr])) 256] }
+ ensures { ?cf = div (old (reg[rd] + reg[rr])) 256 }
+= let rdv  = read_byte reg rd in
+  let rrv  = read_byte reg rr in
+  let res  = clip (rdv + rrv) in
+  set_byte reg rd res;
+  cf.value <- (ar_nth rdv 7 && ar_nth rrv 7 ||
+               ar_nth rrv 7 && not ar_nth res 7 ||
+               not ar_nth res 7 && ar_nth rdv 7)
+
+(*******************************************************************************
+ * ADC - Add with Carry
+ *
+ * Description:
+ * Adds two registers and the contents of the C flag and places the result in
+ * the destination register Rd.
+ *
+ * Operation:
+ *    Rd ← Rd + Rr + C
+ *
+ * Syntax:
+ *    ADC Rd Rr
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31,
+ *    0 ≤ r ≤ 31
+ *
+ * C: Rd7 • Rr7 + Rr7 • R7¯ + R7¯ • Rd7
+ * Set if there was carry from the MSB of the result; cleared otherwise.
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_ADC.html
+ *)
+let adc (rd rr: register): unit
+  writes { cf }
+  reads { cf }
+  writes { reg }
+  ensures { reg = old reg[rd <- mod (old (reg[rd] + reg[rr] + ?cf)) 256] }
+  ensures { ?cf = div (old (reg[rd] + reg[rr] + ?cf)) 256 }
+= let rdv  = read_byte reg rd in
+  let rrv  = read_byte reg rr in
+  let res  = clip (rdv + rrv + ?cf) in
+  set_byte reg rd res;
+  cf.value <- (ar_nth rdv 7 && ar_nth rrv 7 ||
+               ar_nth rrv 7 && not ar_nth res 7 ||
+               not ar_nth res 7 && ar_nth rdv 7)
+
+(*******************************************************************************
+ * SUB- Subtract without Carry
+ *
+ * Description:
+ * Subtracts two registers and places the result in the destination register Rd.
+ *
+ * Operation:
+ *    Rd ← Rd - Rr
+ *
+ * Syntax:
+ *    SUB Rd Rr
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31,
+ *    0 ≤ r ≤ 31
+ *
+ * C: Rd7¯ • Rr7 + Rr7 • R7 + R7 • Rd7¯
+ * Set if the absolute value of the contents of Rr is larger than the absolute
+ * value of Rd; cleared otherwise.
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_SUB.html
+ *)
+let sub (rd rr: register): unit
+  writes { cf }
+  writes { reg }
+  ensures { reg = old reg[rd <- mod (old (reg[rd] - reg[rr])) 256] }
+  ensures { ?cf = -div (old (reg[rd] - reg[rr])) 256 }
+= let rdv  = read_byte reg rd in
+  let rrv  = read_byte reg rr in
+  let res  = clip (rdv - rrv) in
+  set_byte reg rd res;
+  cf.value <- (not ar_nth rdv 7 && ar_nth rrv 7 ||
+               ar_nth rrv 7 && ar_nth res 7 ||
+               ar_nth res 7 && not ar_nth rdv 7)
+
+(*******************************************************************************
+ * SBC- Subtract with Carry
+ *
+ * Description:
+ * Subtracts two registers and subtracts with the C flag and places the result
+ * in the destination register Rd.
+ *
+ * Operation:
+ *    Rd ← Rd - Rr - C
+ *
+ * Syntax:
+ *    SBC Rd Rr
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31,
+ *    0 ≤ r ≤ 31
+ *
+ * C: Rd7¯ • Rr7 + Rr7 • R7 + R7 • Rd7¯
+ * Set if the absolute value of the contents of Rr is larger than the absolute
+ * value of Rd; cleared otherwise.
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_SBC.html
+ *)
+let sbc (rd rr: register): unit
+  writes { cf }
+  reads { cf }
+  writes { reg }
+  ensures { reg = old reg[rd <- mod (old (reg[rd] - reg[rr] - ?cf)) 256] }
+  ensures { ?cf = -div (old (reg[rd] - reg[rr] - ?cf)) 256 }
+= let rdv  = read_byte reg rd in
+  let rrv  = read_byte reg rr in
+  let res  = clip (rdv - rrv - ?cf) in
+  set_byte reg rd res;
+  cf.value <- (not ar_nth rdv 7 && ar_nth rrv 7 ||
+               ar_nth rrv 7 && ar_nth res 7 ||
+               ar_nth res 7 && not ar_nth rdv 7)
+
+(*******************************************************************************
+ * NEG- Two's Complement
+ *
+ * Description:
+ * Replaces the contents of register Rd with its two's complement; the value $80 is left unchanged.
+ *
+ * Operation:
+ *    Rd ← $00 - Rd
+ *
+ * Syntax:
+ *    NEG Rd
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31
+ *
+ * C:R7 + R6 + R5 + R4 + R3 + R2 + R1 + R0
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_NEG.html
+ *)
+let neg (rd: register): unit
+  writes { cf }
+  writes { reg }
+  ensures { reg = old reg[rd <- mod (old (-reg[rd])) 256] }
+(* TODO: which one is useful?
+  ensures { ?cf = if reg[dst] = 0 then 0 else 1 }
+  ensures { ?cf = -div (old (-reg[dst])) 256 }
+*)
+= let rdv = read_byte reg rd in
+  let res = clip (0x00 - rdv) in
+  set_byte reg rd res;
+  cf.value <- (ar_nth res 7 && ar_nth res 6 && ar_nth res 5 && ar_nth res 4 && ar_nth res 3 && ar_nth res 2 && ar_nth res 1 && ar_nth res 0);
+  ()
+
+(******************************************************************************)
+(** immediate versions ********************************************************)
+
+(*******************************************************************************
+ * SUBI- Subtract Immediate
+ *
+ * Description:
+ * Subtracts a constant from a register and subtracts with the C flag and places
+ * the result in the destination register Rd.
+ *
+ * Operation:
+ *    Rd ← Rd - K
+ *
+ * Syntax:
+ *    SUBI Rd,K
+ *
+ * Operands:
+ *    16 ≤ d ≤ 31,
+ *    0 ≤ K ≤ 255
+ *
+ * C:Rd7¯ • K7 + K7 • R7 + R7 • Rd7¯ (according to microchip: Rd7¯ • Rr7 + Rr7 • R7 + R7 • Rd7¯)
+ * Set if the absolute value of the constant plus previous carry is larger than
+ * the absolute value of Rd; cleared otherwise.
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_SUBI.html
+ *)
+let subi (rd: register) (k: int): unit
+  requires { 0 <= k <= 255 }
+  writes { cf }
+  writes { reg }
+  ensures { reg = old reg[rd <- mod (old (reg[rd] - k)) 256] }
+  ensures { ?cf = -div (old (reg[rd] - k)) 256 }
+= let rdv  = read_byte reg rd in
+  let res  = clip (rdv - k) in
+  set_byte reg rd res;
+  cf.value <- (not ar_nth rdv 7 && ar_nth k 7 ||
+               ar_nth k 7 && ar_nth res 7 ||
+               ar_nth res 7 && not ar_nth rdv 7)
+
+(*******************************************************************************
+ * SBCI- Subtract Immediate with Carry
+ *
+ * Description:
+ * Subtracts a register and a constant and places the result in the destination
+ * register Rd. This instruction is working on Register R16 to R31 and is very
+ * well suited for operations on the X, Y and Z pointers.
+ *
+ * Operation:
+ *    Rd ← Rd - K - C
+ *
+ * Syntax:
+ *    SBCI Rd,K
+ *
+ * Operands:
+ *    16 ≤ d ≤ 31,
+ *    0 ≤ K ≤ 255
+ *
+ * C:Rd7¯ • K7 + K7 • R7 + R7 • Rd7¯ (according to microchip: Rd7¯ • Rr7 + Rr7 • R7 + R7 • Rd7¯)
+ * Set if the absolute value of the constant plus previous carry is larger than
+ * the absolute value of Rd; cleared otherwise.
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_SBCI.html
+ *)
+let sbci (rd: register) (k: int): unit
+  requires { 0 <= k <= 255 }
+  writes { cf }
+  reads { cf }
+  writes { reg }
+  ensures { reg = old reg[rd <- mod (old (reg[rd] - k - ?cf)) 256] }
+  ensures { ?cf = -div (old (reg[rd] - k - ?cf)) 256 }
+= let rdv  = read_byte reg rd in
+  let res  = clip (rdv - k - ?cf) in
+  set_byte reg rd res;
+  cf.value <- (not ar_nth rdv 7 && ar_nth k 7 ||
+               ar_nth k 7 && ar_nth res 7 ||
+               ar_nth res 7 && not ar_nth rdv 7)
+
+(******************************************************************************)
+(** These instructions do not modify the carry flag ***************************)
+
+(*******************************************************************************
+ * INC- Increment
+ *
+ * Description:
+ * Adds one -1- to the contents of register Rd and places the result in the
+ * destination register Rd.
+ * The C flag in SREG is not affected by the operation, thus allowing the INC
+ * instruction to be used on a loop counter in multiple-precision computations.
+ * When operating on unsigned values, only BREQ and BRNE branches can be
+ * expected to perform consistently. When operating on two's complement values,
+ * all signed branches are available.
+ *
+ * Operation:
+ *    Rd ← Rd + 1
+ *
+ * Syntax:
+ *    INC Rd
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_INC.html
+ *)
+let inc (rd: register): unit
+  writes { reg }
+  ensures { reg = old reg[rd <- mod (old (reg[rd] + 1)) 256] }
+= let rdv  = read_byte reg rd in
+  let res  = clip (rdv + 1) in
+  set_byte reg rd res
+
+(*******************************************************************************
+ * DEC- Decrement
+ *
+ * Description:
+ * Subtracts one -1- from the contents of register Rd and places the result in
+ * the destination register Rd.
+ * The C flag in SREG is not affected by the operation, thus allowing the DEC
+ * instruction to be used on a loop counter in multiple-precision computations.
+ * When operating on unsigned values, only BREQ and BRNE branches can be
+ * expected to perform consistently. When operating on two's complement values,
+ * all signed branches are available.
+ *
+ * Operation:
+ *    Rd ← Rd - 1
+ *
+ * Syntax:
+ *    DEC Rd
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_DEC.html
+ *)
+let dec (rd: register): unit
+  writes { reg }
+  ensures { reg = old reg[rd <- mod (old (reg[rd] - 1)) 256] }
+= let rdv  = read_byte reg rd in
+  let res  = clip (rdv - 1) in
+  set_byte reg rd res
+
+(******************************************************************************)
+(** Memory manipulation                                                      **)
+(******************************************************************************)
+
+constant rX: register = 26
+constant rY: register = 28
+constant rZ: register = 30
+
+val mem: address_space
+
+(*******************************************************************************
+ * LD - Load Indirect from data space to Register using Index X
+ *
+ * Description:
+ * loads one byte indirect from the data space to a register. For parts with SRAM,
+ * the data space consists of the register file, I/O memory and internal SRAM
+ * (and external SRAM if applicable).
+ * For parts without SRAM, the data space consists of the register file only.
+ * The EEPROM has a separate address space.
+ *
+ * The data location is pointed to by the X (16 bits) pointer register in the
+ * register file.
+ * Memory access is limited to the current data segment of 64K bytes.
+
+ * The X pointer register can either be left unchanged by the operation,
+ * or it can be post-incremented or pre-decremented. These features are
+ * especially suited for accessing arrays, tables, and stack pointer usage of
+ * the X pointer register. Note that only the low byte of the X pointer is
+ * updated in devices with no more than 256 bytes data space.
+ *
+ * The result of these combinations is undefined:
+ *  LD r26, X+
+ *  LD r27, X+
+ *  LD r26, -X
+ *  LD r27, -X
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_LD.html
+ *)
+
+(**
+ * Using the X pointer:
+ *
+ * Operation:
+ *    Rd ← (X),
+ *    X: Unchanged
+ *
+ * Syntax:
+ *    LD Rd, X
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31
+ *)
+let ld (rd src: register): unit
+  writes { reg }
+  reads { mem }
+  requires { 32 <= uint 2 reg src < pow2 16-1 }
+  ensures { let cur = uint 2 (old reg) src in
+            reg = (old reg)[rd <- mem[cur]] }
+= let addr = read_word reg src in
+  let addr_val = read_byte mem addr in
+  set_byte reg rd addr_val
+
+(**
+ * Using the X pointer:
+ *
+ * Operation:
+ *    Rd ← (X),
+ *    X ← X + 1 (X: Post incremented)
+ *
+ * Syntax:
+ *    LD Rd, X+
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31
+ *)
+let ld_inc (rd src: register): unit
+  writes { reg }
+  reads { mem }
+  requires { 32 <= uint 2 reg src < pow2 16-1 }
+(* TODO unnecessary
+  requires { rd <> src /\ rd <> src+1 }
+*)
+  ensures { let cur = uint 2 (old reg) src in
+            let inc = cur+1 in
+            reg = (old reg)[rd <- mem[cur]][src <- mod inc 256][src+1 <- div inc 256] }
+  ensures { uint 2 reg src = old(uint 2 reg src)+1 }
+= let addr = read_word reg src in
+  let addr_val = read_byte mem (addr) in
+  set_byte reg rd addr_val;
+
+  let nxt = clip_word (1+addr) in
+  set_word reg src nxt
+
+(*******************************************************************************
+ * LD (LDD)- Load Indirect from data space to Register using Index Y
+ *
+ * Description:
+ * Loads one byte indirect with or without displacement from the data space to a
+ * register.
+ *
+ * Operation:
+ *    Rd ← (Y+q)
+ *    Y: Unchanged
+ *    q: Displacement
+ *
+ * Syntax:
+ *    LDD Rd, Y+q
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31,
+ *    0 ≤ q ≤ 63
+ *
+ * Also see LD
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_LDD.html
+ *)
+let ldd (rd src q: register): unit
+  writes { reg }
+  reads { mem }
+  requires { 32 <= uint 2 reg src + q < pow2 16 }
+  ensures { let cur = uint 2 (old reg) src in
+            reg = (old reg)[rd <- mem[cur+q]] }
+= let addr = read_word reg src in
+  let addr_val = read_byte mem (addr + q) in
+  set_byte reg rd addr_val
+
+(*******************************************************************************
+ * ST - Store Indirect From Register to data space using Index X
+ *
+ * Description:
+ * Stores one byte indirect from a register to data space. For parts with SRAM,
+ * the data space consists of the register file, I/O memory and internal SRAM
+ * (and external SRAM if applicable). For parts without SRAM, the data space
+ * consists of the register file only. The EEPROM has a separate address space.
+ *
+ * The data location is pointed to by the X (16 bits) pointer register in the
+ * register file.
+ * Memory access is limited to the current data segment of 64K bytes.
+
+ * The X pointer register can either be left unchanged by the operation,
+ * or it can be post-incremented or pre-decremented. These features are
+ * especially suited for accessing arrays, tables, and stack pointer usage of
+ * the X pointer register. Note that only the low byte of the X pointer is
+ * updated in devices with no more than 256 bytes data space.
+ *
+ * The result of these combinations is undefined:
+ *  ST X+, r26
+ *  ST X+, r27
+ *  ST -X, r26
+ *  ST -X, r27
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_ST.html
+ *)
+
+(**
+ * Using the X pointer:
+ *
+ * Operation:
+ *    (X) ← Rr X,
+ *    X: Unchanged
+ *
+ * Syntax:
+ *    ST X, Rr
+ *
+ * Operands:
+ *    0 ≤ r ≤ 31
+ *)
+let st (dst rr: register): unit
+  writes { mem }
+  requires { 32 <= uint 2 reg dst < pow2 16-1 }
+  ensures { let cur = uint 2 reg dst in
+            mem = (old mem)[cur <- reg[rr]] }
+= let rrv = read_byte reg rr in
+  let addr = read_word reg dst in
+  set_byte mem addr rrv
+
+(**
+ * Using the X pointer:
+ *
+ * Operation:
+ *    (X) ← Rr X,
+ *    X ← X+1 (X: Post incremented)
+ *
+ * Syntax:
+ *    ST X, Rr
+ *
+ * Operands:
+ *    0 ≤ r ≤ 31
+ *)
+let st_inc (dst rr: register): unit
+  writes { reg }
+  writes { mem }
+  requires { 32 <= uint 2 reg dst < pow2 16-1 }
+  ensures { let cur = uint 2 (old reg) dst in
+            let inc = cur+1 in
+            reg = (old reg)[dst <- mod inc 256][dst+1 <- div inc 256] }
+  ensures { mem = old (mem[uint 2 reg dst <- reg[rr]]) }
+  ensures { uint 2 reg dst = old(uint 2 reg dst)+1 }
+= let rrv = read_byte reg rr in
+  let addr = read_word reg dst in
+  set_byte mem addr rrv;
+
+  let nxt = clip_word (1+addr) in
+  set_word reg dst nxt
+
+(*******************************************************************************
+ * ST (STD) – Store Indirect From Register to Data Space using Index Y
+ *
+ * Description:
+ * Stores one byte indirect with or without displacement from a register to data
+ * space.
+ *
+ * Operation:
+ *    (Y+q) ← Rr Y
+ *    Y: Unchanged
+ *    q: Displacement
+ *
+ * Syntax:
+ *    STD Y+q, Rr
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31,
+ *    0 ≤ q ≤ 63
+ *
+ * Also see ST
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_STD.html
+ *)
+let std (dst q rr: register): unit
+  writes { mem }
+  reads { reg }
+  requires { 32 <= uint 2 reg dst + q < pow2 16 }
+  ensures { let cur = uint 2 (old reg) dst in
+            mem = (old mem)[cur+q <- reg[rr]] }
+= let rrv = read_byte reg rr in
+  let addr = read_word reg dst in
+  set_byte mem (addr + q) rrv
+
+(******************************************************************************)
+(** Stack operations                                                         **)
+(******************************************************************************)
+
+constant stack_limit: int
+val stack_pointer: ref int
+val stack: address_space
+
+(*******************************************************************************
+ * PUSH - Push Register on Stack
+ *
+ * Description:
+ * This instruction stores the contents of register Rr on the STACK.
+ * The stack pointer is post-decremented by 1 after the PUSH.
+ *
+ * Operation:
+ *    STACK ← Rr,
+ *    SP ← SP - 1
+ *
+ * Syntax:
+ *    PUSH Rr
+ *
+ * Operands:
+ *    0 ≤ r ≤ 31
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_PUSH.html
+ *)
+let push (rr: register): unit
+  writes { stack, stack_pointer }
+  reads { reg }
+  ensures { stack = old(stack[!stack_pointer <- reg[rr]]) }
+  ensures { !stack_pointer = old !stack_pointer - 1 }
+= let rrv = read_byte reg rr in
+  set_byte stack !stack_pointer rrv;
+  stack_pointer := !stack_pointer - 1
+
+(*******************************************************************************
+ * POP - Pop Register from Stack
+ *
+ * Description:
+ * This instruction loads register Rd with a byte from the Stack.
+ * The stack pointer is pre-incremented by 1 before the POP.
+ *
+ * Operation:
+ *    Rd ← STACK,
+ *    SP ← SP + 1
+ *
+ * Syntax:
+ *    POP Rd
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_POP.html
+ *)
+let pop (rd: register): unit
+  writes { reg, stack_pointer }
+  reads { stack }
+  ensures { reg = (old reg)[rd <- stack[!stack_pointer]] }
+  ensures { !stack_pointer = old !stack_pointer + 1 }
+= stack_pointer := !stack_pointer + 1;
+  let popped = read_byte stack !stack_pointer in
+  set_byte reg rd popped
+
+(******************************************************************************)
+(** Word operations                                                          **)
+(******************************************************************************)
+
+(*******************************************************************************
+ * MOVW - Copy Register Word
+ *
+ * Description:
+ * This instruction makes a copy of one register pair into another register pair.
+ * The source register pair Rr+1:Rr is left unchanged, while the destination
+ * register pair Rd+1:Rd is loaded with a copy of Rr + 1:Rr.
+ *
+ * Operation:
+ *    Rd+1:Rd ← Rr+1:Rr
+ *
+ * Syntax:
+ *    MOVW Rd+1:Rd,Rr+1:Rr
+ *
+ * Operands:
+ *    d E {0,2,...,30},
+ *    r E {0,2,...,30}
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_MOVW.html
+ *)
+let movw (rd rr: register): unit
+(* TODO unnecessary
+  requires { mod dst 2 = 0 /\ mod src 2 = 0 }
+*)
+  writes { reg }
+  ensures { reg = old reg[rd<-reg[rr]][rd+1<-reg[rr+1]] }
+= let rr_low = read_byte reg rr in
+  let rr_high = read_byte reg (rr+1) in
+  set_byte reg rd rr_low;
+  set_byte reg (rd+1) rr_high
+
+(*******************************************************************************
+ * ADIW - Add Immediate to Word
+ *
+ * Description:
+ * Adds an immediate value (0-63) to a register pair and places the result in
+ * the register pair. This instruction operates on the upper four register pairs,
+ * and is well suited for operations on the pointer registers.
+ *
+ * Operation:
+ *    Rd+1:Rd ← Rd+1:Rd + K
+ *
+ * Syntax:
+ *    ADIW Rd+1:Rd,K
+ *
+ * Operands:
+ *    d E {24,26,28,30},
+ *    0 <= K <= 63
+ *
+ * C: R15¯ • Rdh7
+ * Set if there was carry from the MSB of the result; cleared otherwise.
+ *
+ * R (Result) equals Rdh:Rdl after the operation (Rdh7-Rdh0 = R15-R8, Rdl7-Rdl0=R7-R0).
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_ADIW.html
+ *)
+let adiw (rd: register) (k: int): unit
+  requires { 0 <= k < 64 }
+(* TODO unnecessary
+  requires { rd = 24 \/ rd = 26 \/ rd = 28 \/ rd = 30 }
+*)
+  writes { reg }
+  writes { cf }
+  ensures { reg = old reg[rd   <- mod (old (reg[rd] + k)) 256]
+                         [rd+1 <- mod (old (reg[rd+1] + div (reg[rd] + k) 256)) 256] }
+  ensures { ?cf = div (old (uint 2 reg rd + k)) 65536 }
+  ensures { ?cf*pow2 16 + uint 2 reg rd = old (uint 2 reg rd + k) }
+= let rdw = read_word reg rd in
+  let res = clip_word (rdw + k) in
+  set_word reg rd res;
+  abstract ensures {?cf = div (rdw + k) 65536 by (res < 32768 /\ rdw >= 32768 <-> div (rdw + k) 65536 = 1) }
+    cf.value <- (not ar_nth res 15 && ar_nth rdw 15) (* observe that Rdh7 = ar_nth rdw 15 *)
+  end
+
+(*******************************************************************************
+ * SBIW - Subtract Immediate from Word
+ *
+ * Description:
+ * Subtracts an immediate value (0-63) from a register pair and places the
+ * result in the register pair. This instruction operates on the upper four
+ * register pairs, and is well suited for operations on the pointer registers.
+ *
+ * Operation:
+ *    Rd+1:Rd ← Rd+1:Rd - K
+ *
+ * Syntax:
+ *    SBIW Rd+1:Rd,K
+ *
+ * Operands:
+ *    d E {24,26,28,30},
+ *    0 <= K <= 63
+ *
+ * C: Rdh7¯ • R15
+ * Set if the absolute value of K is larger than the absolute value of Rd;
+ * cleared otherwise.
+ *
+ * R (Result) equals Rdh:Rdl after the operation (Rdh7-Rdh0 = R15-R8, Rdl7-Rdl0=R7-R0).
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_SBIW.html
+ *)
+let sbiw (rd: register) (k: int): unit
+  requires { 0 <= k < 64 }
+(* TODO unnecessary
+  requires { rd = 24 \/ rd = 26 \/ rd = 28 \/ rd = 30 }
+*)
+  writes { reg }
+  writes { cf }
+  ensures { reg = old reg[rd   <- mod (old (reg[rd] - k)) 256]
+                         [rd+1 <- mod (old (reg[rd+1] + div (reg[rd] - k) 256)) 256] }
+  ensures { ?cf = -div (old (uint 2 reg rd - k)) 65536 }
+  ensures { uint 2 reg rd = ?cf*pow2 16 + old (uint 2 reg rd - k) }
+= let rdw = read_word reg rd in
+  let res = clip_word (rdw - k) in
+  set_word reg rd res;
+  abstract ensures { ?cf = -div (rdw - k) 65536 by (rdw < 32768 /\ res >= 32768 <-> -div (rdw - k) 65536 = 1)}
+    cf.value <- (not ar_nth rdw 15 && ar_nth res 15) (* observe that Rdh7 = ar_nth rdw 15 *)
+  end
+
+(******************************************************************************)
+(** Bit operations                                                           **)
+(******************************************************************************)
+
+(*************** BITVECTOR IMPORTS ********************)
+
+use bv.BV8
+
+let set_bv8 (reg: address_space) (dst: int) (value: BV8.t): unit
+  writes {reg}
+  ensures {reg = old reg[dst <- BV8.t'int value]}
+= set_byte reg dst (BV8.t'int value)
+
+let read_bv8 (reg: address_space) (src: int): BV8.t
+  ensures {BV8.t'int result = reg[src]}
+= BV8.of_int (Map.get reg.data src)
+
+(* this establishes an equivalence result between ar_nth and BV8.nth;
+   justifying our use of ar_nth in the instruction-implementations *)
+let ghost ar_nth_bv_nth_equivalent (i j: int): unit
+  requires { 0 <= i < 256 /\ 0 <= j < 8 }
+  ensures { (mod (div i (pow2 j)) 2 <> 0) = BV8.nth (BV8.of_int i) j }
+= assert {
+    BV8.nth (BV8.of_int i) 0 = (1 = mod i 2) /\
+    BV8.nth (BV8.of_int i) 1 = (1 = mod (div i 2) 2) /\
+    BV8.nth (BV8.of_int i) 2 = (1 = mod (div i 4) 2) /\
+    BV8.nth (BV8.of_int i) 3 = (1 = mod (div i 8) 2) /\
+    BV8.nth (BV8.of_int i) 4 = (1 = mod (div i 16) 2) /\
+    BV8.nth (BV8.of_int i) 5 = (1 = mod (div i 32) 2) /\
+    BV8.nth (BV8.of_int i) 6 = (1 = mod (div i 64) 2) /\
+    BV8.nth (BV8.of_int i) 7 = (1 = mod (div i 128) 2)
+  };
+  let witness = ar_nth i j in ()
+
+(*******************************************************************************
+ * EOR - Exclusive OR
+ *
+ * Description:
+ * Performs the logical EOR between the contents of register Rd and register Rr
+ * and places the result in the destination register Rd.
+ *
+ * Operation:
+ *    Rd ← Rd ⊕ Rr
+ *
+ * Syntax:
+ *    EOR Rd,Rr
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31,
+ *    0 ≤ r ≤ 31
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_EOR.html
+ *)
+let eor (rd rr: register): unit
+  writes { reg }
+  ensures { reg = old reg[rd <- BV8.t'int (BV8.bw_xor (BV8.of_int reg[rd]) (BV8.of_int reg[rr])) ] }
+= let rdv = read_bv8 reg rd in
+  let rrv = read_bv8 reg rr in
+  let res = BV8.bw_xor rdv rrv in
+  set_bv8 reg rd res
+
+(*******************************************************************************
+ * AND - Logical AND
+ *
+ * Description:
+ * Performs the logical AND between the contents of register Rd and register Rr
+ * and places the result in the destination register Rd.
+ *
+ * Operation:
+ *    Rd ← Rd • Rr
+ *
+ * Syntax:
+ *    AND Rd,Rr
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31,
+ *    0 ≤ r ≤ 31
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_AND.html
+ *)
+let and (rd rr: register): unit
+  writes { reg }
+  ensures { reg = old reg[rd <- BV8.t'int (BV8.bw_and (BV8.of_int reg[rd]) (BV8.of_int reg[rr])) ] }
+= let rdv = read_bv8 reg rd in
+  let rrv = read_bv8 reg rr in
+  let res = BV8.bw_and rdv rrv in
+  set_bv8 reg rd res
+
+(*******************************************************************************
+ * CLR - Clear Register
+ *
+ * Description:
+ * Clears a register. This instruction performs an Exclusive OR between a
+ * register and itself. This will clear all bits in the register.
+ *
+ * Operation:
+ *    Rd ← Rd ⊕ Rd
+ *
+ * Syntax:
+ *    CLR Rd
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_CLR.html
+ *)
+let clr (dst: register): unit
+  writes { reg }
+  ensures { reg = old reg[dst<-0] }
+= eor dst dst
+
+(*******************************************************************************
+ * COM- One's Complement
+ *
+ * Description:
+ * This instruction performs a one's complement of register Rd.
+ *
+ * Operation:
+ *    Rd ← $FF - Rd
+ *
+ * Syntax:
+ *    COM Rd
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31
+ *
+ * C:1
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_COM.html
+ *)
+let com (rd: register): unit
+  writes { reg, cf }
+  ensures { reg = old reg[rd<- mod (0xFF - (old reg)[rd]) 256] }
+  ensures { ?cf = 1 }
+= let rdv = read_byte reg rd in
+  let res = clip (0xFF - rdv) in
+  set_byte reg rd res;
+  cf.value <- true
+
+(*******************************************************************************
+ * ASR - Arithmetic Shift Right
+ *
+ * Description:
+ * Shifts all bits in Rd one place to the right. Bit 7 is held constant.
+ * Bit 0 is loaded into the C flag of the SREG.
+ * This operation effectively divides a signed value by two without changing its
+ * sign. The carry flag can be used to round the result.
+ *
+ * Operation:
+ *    Rd ← "Arithmetic shift right of Rd"
+ *
+ * Syntax:
+ *    ASR Rd
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31
+ *
+ * C:Rd0
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_ASR.html
+ *)
+let asr (rd: register): unit
+  writes { reg, cf }
+  ensures { reg = old reg[rd<- BV8.t'int (BV8.asr (BV8.of_int reg[rd]) 1)] }
+  ensures { ?cf = mod (old reg[rd]) 2 }
+  ensures { cf.value = BV8.nth (BV8.of_int (old reg[rd])) 0 }
+= let rdv = read_bv8 reg rd in
+  let res = BV8.asr rdv 1 in
+  cf.value <- BV8.nth rdv 0;
+  set_bv8 reg rd res
+
+let asr' (rd: register): unit
+  writes { reg, cf }
+  ensures { let rdv = old reg[rd] in
+            reg = (old reg)[rd<- div rdv 2 + 128 * div rdv 128 ] }
+  ensures { ?cf = mod (old reg[rd]) 2 }
+= let rdv = read_byte reg rd in
+  let b7 = (if (ar_nth rdv 7) then 1 else 0) in
+  let res = div rdv 2 + 128 * b7 in
+  cf.value <- ar_nth rdv 0;
+  set_byte reg rd res
+
+(*******************************************************************************
+ * LSR- Logical Shift Right
+ *
+ * Description:
+ * Shifts all bits in Rd one place to the right. Bit 7 is cleared.
+ * Bit 0 is loaded into the C flag of the SREG.
+ * This operation effectively divides an unsigned value by two.
+ * The C flag can be used to round the result.
+ *
+ * Operation:
+ *    Rd ← "Logical shift right of Rd"
+ *
+ * Syntax:
+ *    LSR Rd
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31
+ *
+ * C:Rd0
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_LSR.html
+ *)
+let lsr (rd: register): unit
+  writes { reg, cf }
+  ensures { reg = old reg[rd<- div (old reg)[rd] 2] }
+  ensures { ?cf = mod (old reg[rd]) 2 }
+  ensures { cf.value = BV8.nth (BV8.of_int (old reg[rd])) 0 }
+= assert {forall i. 0 <= i < 256 -> mod i 2 = 1 <-> BV8.nth (BV8.of_int i) 0};
+  let rdv = read_byte reg rd in
+  let res = div rdv 2 in
+  cf.value <- ar_nth rdv 0;
+  set_byte reg rd res
+
+(* this instruction doesn't physically exist on the AVR, but just maps to 'add rd, rd' *)
+let lsl (dst: register): unit
+  writes { reg, cf }
+  ensures { reg = old reg[dst <- mod (old (2*reg[dst])) 256] }
+  ensures { ?cf = div (old (2*reg[dst])) 256 }
+= add dst dst
+
+(* this instruction doesn't physically exist on the AVR, but just maps to 'adc rd, rd' *)
+let rol (dst: register): unit
+  writes { reg, cf }
+  ensures { reg = old reg[dst <- mod (old (?cf+2*reg[dst])) 256] }
+  ensures { ?cf = div (old (?cf+2*reg[dst])) 256 }
+= adc dst dst
+
+(* t flag operations *)
+val tf: cpu_flag
+
+(*******************************************************************************
+ * BST - Bit Store from Bit in Register to T Flag in SREG
+ *
+ * Description:
+ * Stores bit b from Rd to the T flag in SREG (status register).
+ *
+ * Operation:
+ *    T ← Rd(b)
+ *
+ * Syntax:
+ *    BST Rd,b
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31,
+ *    0 ≤ b ≤ 7
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_BST.html
+ *)
+let bst (rd: register) (bit: int): unit
+  writes { tf }
+  requires { 0 <= bit < 8 }
+  ensures { tf.value = BV8.nth (BV8.of_int reg[rd]) bit }
+= let rdv = read_bv8 reg rd in
+  tf.value <- BV8.nth rdv bit
+
+function bitset (w: BV8.t) (b: int) (v: bool): BV8.t =
+  let mask = BV8.lsl (BV8.of_int 1) b in
+  if v then
+    BV8.bw_or w mask
+  else
+    BV8.bw_and w (BV8.bw_not mask)
+
+function bitset' (w: BV8.t) (b: int) (v: bool): BV8.t =
+  let v'  = BV8.of_int (if v then 1 else 0) in
+  let one = BV8.of_int 1 in
+  BV8.bw_or (BV8.bw_and w (BV8.bw_not (BV8.lsl one b))) (BV8.lsl v' b)
+
+function bitsetx (w: BV8.t) (b: int) (v: bool): BV8.t =
+  let mask = BV8.lsl (BV8.of_int 1) b in
+  if BV8.nth w b = v then
+    w
+  else
+    BV8.bw_xor w mask
+
+lemma one_def:
+  BV8.nth (BV8.of_int 1) 0 /\ forall b. 0 < b < 8 -> not BV8.nth (BV8.of_int 1) b
+
+goal bitset_correct1:
+  forall w, b, v. 0 <= b < 8 ->
+    BV8.nth (bitset w b v) b = v
+
+goal bitset_correct2:
+  forall w, b i, v. 0 <= b < 8 -> 0 <= i < 8 -> i <> b ->
+    BV8.nth (bitset w b v) i = BV8.nth w i
+
+goal bitset_equiv_def:
+  forall w, b, v. 0 <= b < 8 -> BV8.eq (bitset w b v) (bitset' w b v)
+
+goal bitsetx_equiv_def:
+  forall w, b, v. 0 <= b < 8 -> BV8.eq (bitset w b v) (bitsetx w b v)
+
+(*******************************************************************************
+ * BLD - Bit Load from the T Flag in SREG to a Bit in Register.
+ *
+ * Description:
+ * Copies the T flag in the SREG (status register) to bit b in register Rd.
+ *
+ * Operation:
+ *    Rd(b) ← T
+ *
+ * Syntax:
+ *    BLD Rd,b
+ *
+ * Operands:
+ *    0 ≤ d ≤ 31,
+ *    0 ≤ b ≤ 7
+ *
+ * from: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_BLD.html
+ *)
+let bld (rd: register) (bit: int): unit
+  writes { reg }
+  requires { 0 <= bit < 8 }
+  ensures { reg = (old reg)[rd <- BV8.t'int (bitset (BV8.of_int (old reg)[rd]) bit tf.value)] }
+= let rdv = read_bv8 reg rd in
+  let mask = BV8.lsl (BV8.of_int 1) bit in
+  if ?tf = 0 then
+    set_bv8 reg rd (BV8.bw_and rdv (BV8.bw_not mask))
+  else
+    set_bv8 reg rd (BV8.bw_or rdv mask)
+
+(*
+let bld' (dst: register) (bit: int): unit
+  writes { reg }
+  requires { 0 <= bit < 8 }
+  ensures { reg = (old reg)[dst <- BV8.t'int (bitset' (BV8.of_int (old reg)[dst]) bit tf.value)] }
+= let rd = BV8.of_int (Map.get reg.data dst) in
+  let mask = BV8.lsl (BV8.of_int 1) bit in
+  if ?tf = 0 then
+    reg.data <- Map.set reg.data dst (BV8.t'int (BV8.bw_and rd (BV8.bw_not mask)))
+  else
+    reg.data <- Map.set reg.data dst (BV8.t'int (BV8.bw_or rd mask))
+
+let bld'' (dst: register) (bit: int): unit
+  writes { reg }
+  requires { 0 <= bit < 8 }
+  ensures { reg = (old reg)[dst <- BV8.t'int (bitsetx (BV8.of_int (old reg)[dst]) bit tf.value)] }
+= let rd = BV8.of_int (Map.get reg.data dst) in
+  let mask = BV8.lsl (BV8.of_int 1) bit in
+  if ?tf = 0 then
+    reg.data <- Map.set reg.data dst (BV8.t'int (BV8.bw_and rd (BV8.bw_not mask)))
+  else
+    reg.data <- Map.set reg.data dst (BV8.t'int (BV8.bw_or rd mask))
+*)
+
+(****** REASONING ABOUT MACHINE STATE *)
+
+predicate eq (w: int) (reg reg': address_space) (lo: int)
+  = forall i. lo <= i < lo+w -> reg[i] = reg'[i]
+
+goal eq_narrow:
+  forall reg reg', lo lo' w w'. lo <= lo' -> lo'+w' <= lo+w -> eq w reg reg' lo -> eq w' reg reg' lo'
+goal eq_combine:
+  forall reg reg', lo lo' w w'. eq w reg reg' lo -> eq w' reg reg' lo' -> lo' = lo+w -> eq (w+w') reg reg' lo
+goal eq_uint:
+  forall reg reg', lo w. eq w reg reg' lo -> uint w reg lo = uint w reg' lo
+
+(* Rewrite rules we want to apply in most cases *)
+lemma uint_0:
+  forall reg, lo. B.sum (reg,lo) 0 0 = 0
+lemma uint_1:
+  forall reg, lo. B.sum (reg,lo) 0 1 = reg[lo]
+meta rewrite prop uint_1
+lemma uint_2:
+  forall reg, lo. B.sum (reg,lo) 0 2 = reg[lo] + pow2 8*reg[lo+1]
+meta rewrite prop uint_2
+lemma uint_3:
+  forall reg, lo. B.sum (reg,lo) 0 3 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2]
+meta rewrite prop uint_3
+lemma uint_4:
+  forall reg, lo. B.sum (reg,lo) 0 4 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3]
+meta rewrite prop uint_4
+lemma uint_5:
+  forall reg, lo. B.sum (reg,lo) 0 5 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4]
+meta rewrite prop uint_5
+lemma uint_6:
+  forall reg, lo. B.sum (reg,lo) 0 6 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5]
+meta rewrite prop uint_6
+lemma uint_7:
+  forall reg, lo. B.sum (reg,lo) 0 7 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6]
+meta rewrite prop uint_7
+lemma uint_8:
+  forall reg, lo. B.sum (reg,lo) 0 8 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7]
+meta rewrite prop uint_8
+lemma uint_9:
+  forall reg, lo. B.sum (reg,lo) 0 9 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8]
+meta rewrite prop uint_9
+lemma uint_10:
+  forall reg, lo. B.sum (reg,lo) 0 10 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9]
+meta rewrite prop uint_10
+lemma uint_11:
+  forall reg, lo. B.sum (reg,lo) 0 11 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10]
+meta rewrite prop uint_11
+lemma uint_12:
+  forall reg, lo. B.sum (reg,lo) 0 12 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11]
+meta rewrite prop uint_12
+lemma uint_13:
+  forall reg, lo. B.sum (reg,lo) 0 13 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12]
+meta rewrite prop uint_13
+lemma uint_14:
+  forall reg, lo. B.sum (reg,lo) 0 14 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13]
+meta rewrite prop uint_14
+lemma uint_15:
+  forall reg, lo. B.sum (reg,lo) 0 15 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14]
+meta rewrite prop uint_15
+lemma uint_16:
+  forall reg, lo. B.sum (reg,lo) 0 16 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15]
+meta rewrite prop uint_16
+lemma uint_17:
+  forall reg, lo. B.sum (reg,lo) 0 17 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16]
+meta rewrite prop uint_17
+lemma uint_18:
+  forall reg, lo. B.sum (reg,lo) 0 18 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17]
+meta rewrite prop uint_18
+lemma uint_19:
+  forall reg, lo. B.sum (reg,lo) 0 19 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18]
+meta rewrite prop uint_19
+lemma uint_20:
+  forall reg, lo. B.sum (reg,lo) 0 20 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18] + pow2 152*reg[lo+19]
+meta rewrite prop uint_20
+lemma uint_21:
+  forall reg, lo. B.sum (reg,lo) 0 21 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18] + pow2 152*reg[lo+19] + pow2 160*reg[lo+20]
+meta rewrite prop uint_21
+lemma uint_22:
+  forall reg, lo. B.sum (reg,lo) 0 22 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18] + pow2 152*reg[lo+19] + pow2 160*reg[lo+20] + pow2 168*reg[lo+21]
+meta rewrite prop uint_22
+lemma uint_23:
+  forall reg, lo. B.sum (reg,lo) 0 23 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18] + pow2 152*reg[lo+19] + pow2 160*reg[lo+20] + pow2 168*reg[lo+21] + pow2 176*reg[lo+22]
+meta rewrite prop uint_23
+lemma uint_24:
+  forall reg, lo. B.sum (reg,lo) 0 24 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18] + pow2 152*reg[lo+19] + pow2 160*reg[lo+20] + pow2 168*reg[lo+21] + pow2 176*reg[lo+22] + pow2 184*reg[lo+23]
+meta rewrite prop uint_24
+lemma uint_25:
+  forall reg, lo. B.sum (reg,lo) 0 25 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18] + pow2 152*reg[lo+19] + pow2 160*reg[lo+20] + pow2 168*reg[lo+21] + pow2 176*reg[lo+22] + pow2 184*reg[lo+23] + pow2 192*reg[lo+24]
+meta rewrite prop uint_25
+lemma uint_26:
+  forall reg, lo. B.sum (reg,lo) 0 26 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18] + pow2 152*reg[lo+19] + pow2 160*reg[lo+20] + pow2 168*reg[lo+21] + pow2 176*reg[lo+22] + pow2 184*reg[lo+23] + pow2 192*reg[lo+24] + pow2 200*reg[lo+25]
+meta rewrite prop uint_26
+lemma uint_27:
+  forall reg, lo. B.sum (reg,lo) 0 27 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18] + pow2 152*reg[lo+19] + pow2 160*reg[lo+20] + pow2 168*reg[lo+21] + pow2 176*reg[lo+22] + pow2 184*reg[lo+23] + pow2 192*reg[lo+24] + pow2 200*reg[lo+25] + pow2 208*reg[lo+26]
+meta rewrite prop uint_27
+lemma uint_28:
+  forall reg, lo. B.sum (reg,lo) 0 28 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18] + pow2 152*reg[lo+19] + pow2 160*reg[lo+20] + pow2 168*reg[lo+21] + pow2 176*reg[lo+22] + pow2 184*reg[lo+23] + pow2 192*reg[lo+24] + pow2 200*reg[lo+25] + pow2 208*reg[lo+26] + pow2 216*reg[lo+27]
+meta rewrite prop uint_28
+lemma uint_29:
+  forall reg, lo. B.sum (reg,lo) 0 29 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18] + pow2 152*reg[lo+19] + pow2 160*reg[lo+20] + pow2 168*reg[lo+21] + pow2 176*reg[lo+22] + pow2 184*reg[lo+23] + pow2 192*reg[lo+24] + pow2 200*reg[lo+25] + pow2 208*reg[lo+26] + pow2 216*reg[lo+27] + pow2 224*reg[lo+28]
+meta rewrite prop uint_29
+lemma uint_30:
+  forall reg, lo. B.sum (reg,lo) 0 30 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18] + pow2 152*reg[lo+19] + pow2 160*reg[lo+20] + pow2 168*reg[lo+21] + pow2 176*reg[lo+22] + pow2 184*reg[lo+23] + pow2 192*reg[lo+24] + pow2 200*reg[lo+25] + pow2 208*reg[lo+26] + pow2 216*reg[lo+27] + pow2 224*reg[lo+28] + pow2 232*reg[lo+29]
+meta rewrite prop uint_30
+lemma uint_31:
+  forall reg, lo. B.sum (reg,lo) 0 31 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18] + pow2 152*reg[lo+19] + pow2 160*reg[lo+20] + pow2 168*reg[lo+21] + pow2 176*reg[lo+22] + pow2 184*reg[lo+23] + pow2 192*reg[lo+24] + pow2 200*reg[lo+25] + pow2 208*reg[lo+26] + pow2 216*reg[lo+27] + pow2 224*reg[lo+28] + pow2 232*reg[lo+29] + pow2 240*reg[lo+30]
+meta rewrite prop uint_31
+lemma uint_32:
+  forall reg, lo. B.sum (reg,lo) 0 32 = reg[lo] + pow2 8*reg[lo+1] + pow2 16*reg[lo+2] + pow2 24*reg[lo+3] + pow2 32*reg[lo+4] + pow2 40*reg[lo+5] + pow2 48*reg[lo+6] + pow2 56*reg[lo+7] + pow2 64*reg[lo+8] + pow2 72*reg[lo+9] + pow2 80*reg[lo+10] + pow2 88*reg[lo+11] + pow2 96*reg[lo+12] + pow2 104*reg[lo+13] + pow2 112*reg[lo+14] + pow2 120*reg[lo+15] + pow2 128*reg[lo+16] + pow2 136*reg[lo+17] + pow2 144*reg[lo+18] + pow2 152*reg[lo+19] + pow2 160*reg[lo+20] + pow2 168*reg[lo+21] + pow2 176*reg[lo+22] + pow2 184*reg[lo+23] + pow2 192*reg[lo+24] + pow2 200*reg[lo+25] + pow2 208*reg[lo+26] + pow2 216*reg[lo+27] + pow2 224*reg[lo+28] + pow2 232*reg[lo+29] + pow2 240*reg[lo+30] + pow2 248*reg[lo+31]
+meta rewrite prop uint_32
+meta compute_max_steps 0x1000000
+
+(**
+ * The following ghost functions allow us to make observations (for example:
+ * this 8 byte value cannot be larger than 2^64-1) that are not suitable to
+ * be expressed in a lemma.
+ *)
+let rec ghost uint_recursion (reg: address_space) (lo w: int): unit
+  requires { w >= 0 }
+  ensures { B.sum (reg,lo) 1 w = 256*B.sum (reg,lo+1) 0 (w-1) }
+  variant { w }
+= assert { forall k. 0 <= k < w-1 -> get_uint_term (reg,lo) (k+1) = 256*get_uint_term (reg,lo+1) k };
+  if w > 0 then begin
+    uint_recursion reg lo (w-1)
+  end
+
+let rec ghost uint_bound (reg: address_space) (lo w: int): unit
+  requires { w >= 0 }
+  ensures { 0 <= B.sum (reg,lo) 0 w < pow2 (8*w) }
+  variant { w }
+= if w > 0 then begin
+    uint_recursion reg lo w;
+    assert { B.sum (reg,lo) 0 w = reg[lo] + 256*B.sum (reg,lo+1) 0 (w-1) };
+    uint_bound reg (lo+1) (w-1);
+    (* otherwise Z3 is needed *)
+    assert { pow2 8*pow2 (8*(w-1)) = pow2 (8+8*(w-1)) };
+  end
+
+let rec ghost uint (w: int) (reg: address_space) (lo: register): int
+  ensures { result = uint w reg lo }
+  variant { w }
+= if w <= 0 then 0 else begin
+    uint_recursion reg lo w;
+    Map.get reg.data lo + 256*uint (w-1) reg (lo+1)
+  end
+
+let rec ghost uint_eq (w: int) (m1 m2: address_space) (ofs: int)
+  requires { w >= 0 }
+  requires { B.sum (m1,ofs) 0 w = B.sum (m2,ofs) 0 w }
+  ensures { eq w m1 m2 ofs }
+  variant { w }
+= if w > 0 then begin
+    uint_recursion m1 ofs w;
+    assert { B.sum (m1,ofs) 0 w = m1[ofs] + 256*B.sum (m1,ofs+1) 0 (w-1) };
+    uint_recursion m2 ofs w;
+    assert { B.sum (m1,ofs) 0 w = m2[ofs] + 256*B.sum (m2,ofs+1) 0 (w-1) };
+    assert { m1[ofs] = mod (B.sum (m1,ofs) 0 w) 256 = mod (B.sum (m2,ofs) 0 w) 256 = m2[ofs] };
+    uint_eq (w-1) m1 m2 (ofs+1);
+    assert { eq (w-1) m1 m2 (ofs+1) };
+  end
+
+let rec ghost eq_uint (w: int) (m1 m2: address_space) (ofs: int)
+  requires { w >= 0 }
+  requires { eq w m1 m2 ofs }
+  ensures { B.sum (m1,ofs) 0 w = B.sum (m2,ofs) 0 w }
+  variant { w }
+= if w > 0 then begin
+    eq_uint (w-1) m1 m2 (ofs+1);
+    uint_recursion m1 ofs w;
+    uint_recursion m2 ofs w;
+  end
+
+let rec ghost uint_split (reg: address_space) (lo w w': int): unit
+  requires { w >= w' >= 0 }
+  ensures { B.sum (reg,lo) 0 w = B.sum (reg,lo) 0 w' + pow2 (8*w') * B.sum (reg,lo+w') 0 (w-w') }
+  variant { w' }
+= if w' > 0 then begin
+    uint_recursion reg (lo+w'-1) (w-w'+1);
+    uint_split reg lo w (w'-1);
+    assert { pow2 8*pow2 (8*(w'-1)) = pow2 (8+8*(w'-1)) };
+  end
+
+let ghost mk_uint (x: int) (ghost m: address_space) (lo w: int)
+  requires { w >= 0 }
+  requires { 0 <= x < pow2 (8*w) }
+= let ghost div_trans (x a b: int): unit
+    requires { a > 0 /\ b > 0 }
+    ensures { div x (a*b) = div (div x a) b }
+  = ()
+in
+  for i = w downto 1 do
+    invariant { forall i. 0 <= m[i] <= 255 }
+    invariant { uint (w-i) m (lo+i) = div x (pow2 (8*i)) }
+    let m' = as_copy m in
+    let x_i = div x (pow2 (8*(i-1))) in
+    set_byte m (lo+i-1) (clip x_i);
+    eq_uint (w-i) m m' (lo+i);
+    uint_recursion m (lo+i-1) (w-i+1);
+    div_trans x (pow2 (8*(i-1))) 256;
+    assert { pow2 (8+8*(i-1)) = pow2 8*pow2 (8*(i-1)) };
+  done
+
+end
+
+(**
+ * On AVR, there is an idiomatic sequence of instructions to manipulate
+ * the stack pointer. Modelling this ad-hoc by directly using WhyML to get the
+ * stack pointer destroys the close match between the WhyML model and the
+ * actual assembly code, so we provide a fine-grained but limited model.
+ *)
+
+module AVRio
+
+use import int.Int
+use import int.EuclideanDivision
+use import ref.Ref
+use import AVRint as AVR
+
+(* interrupt flag *)
+val intf: cpu_flag
+
+(*******************************************************************************
+ * CLI - No Operation
+ *
+ * Description:
+ * Clears the Global Interrupt Enable (I) bit in SREG. Interrupts will be immediately disabled.
+ *
+ * Syntax:
+ *    CLI
+ *)
+let cli (): unit
+  writes { intf }
+  ensures { ?intf = 0 }
+= intf.value <- false
+
+
+(*******************************************************************************
+ * IN - Loads data from the I/O space into register Rd
+ *
+ * Description:
+ * Loads data from the I/O space.
+ *  Only the stack pointer (addres 0x3D and 0x3E) and status register (0x3F) are modelled.
+ *
+ * Operation:
+ *    Rd ← I/O(A)
+ * Syntax:
+ *    IN Rd,A
+ *)
+let io_in (rd: register) (a: int): unit
+  writes { reg }
+  ensures { a = 0x3D -> reg = old reg[rd <- mod !stack_pointer 256] }
+  ensures { a = 0x3E -> reg = old reg[rd <- div !stack_pointer 256] }
+  ensures { a = 0x3F -> exists b. reg = (old reg)[rd <- b] /\ div b 128 = ?intf }
+= assume { 0 <= !stack_pointer <= 0xFFFF }; (* TODO *)
+  if 0x3D <= a <= 0x3F then
+  set_byte reg rd (
+    if a=0x3D then clip (!stack_pointer) else
+    if a=0x3E then high (!stack_pointer) else
+    if a=0x3F then (if intf.value then 0x80 else 0) else
+    absurd
+  )
+
+
+(*******************************************************************************
+ * OUT - Writes data to the I/O space from register Rd
+ * 
+ * We only model this triplet of instructions:
+ *
+ * OUT 0x3E, <register containing sph>
+ * OUT 0x3F, <register containing flags>
+ * OUT 0x3D, <register containing spl>
+ *
+ *)
+let io_out_3e3f3d (sph flags spl: register)
+  requires { ?intf = 0 }
+  writes { cf, intf, stack_pointer }
+  ensures { !stack_pointer = reg[spl] + 256*reg[sph] }
+  ensures { ?intf = div reg[flags] 128 }
+= stack_pointer := mod !stack_pointer 256 + 256*read_byte reg sph;
+  cf.value   <- ar_nth (read_byte reg flags) 0;
+  intf.value <- ar_nth (read_byte reg flags) 7;
+  stack_pointer := !stack_pointer -  mod !stack_pointer 256 + read_byte reg spl
+
+end
+
+
+(**
+ * The shadow registers are used to specify which specific parts of the register
+ * space has been modified by a block of code. While it is possible to
+ * accomplish this using just maps, using this method we can specify the changes
+ * for each register separately instead of all at once which allows for more
+ * readable specifications.
+ *)
+module Shadow
+
+use import int.Int
+use import ref.Ref
+use import AVRint as AVR
+use map.Map
+
+type shadow_registers = {
+	ghost r0: ref int;
+	ghost r1: ref int;
+	ghost r2: ref int;
+	ghost r3: ref int;
+	ghost r4: ref int;
+	ghost r5: ref int;
+	ghost r6: ref int;
+	ghost r7: ref int;
+	ghost r8: ref int;
+	ghost r9: ref int;
+	ghost r10: ref int;
+	ghost r11: ref int;
+	ghost r12: ref int;
+	ghost r13: ref int;
+	ghost r14: ref int;
+	ghost r15: ref int;
+	ghost r16: ref int;
+	ghost r17: ref int;
+	ghost r18: ref int;
+	ghost r19: ref int;
+	ghost r20: ref int;
+	ghost r21: ref int;
+	ghost r22: ref int;
+	ghost r23: ref int;
+	ghost r24: ref int;
+	ghost r25: ref int;
+	ghost r26: ref int;
+	ghost r27: ref int;
+	ghost r28: ref int;
+	ghost r29: ref int;
+	ghost r30: ref int;
+	ghost r31: ref int
+}
+
+predicate synchronized (self: shadow_registers) (avr: address_space) =
+	avr[0] = !(self.r0) /\
+	avr[1] = !(self.r1) /\
+	avr[2] = !(self.r2) /\
+	avr[3] = !(self.r3) /\
+	avr[4] = !(self.r4) /\
+	avr[5] = !(self.r5) /\
+	avr[6] = !(self.r6) /\
+	avr[7] = !(self.r7) /\
+	avr[8] = !(self.r8) /\
+	avr[9] = !(self.r9) /\
+	avr[10] = !(self.r10) /\
+	avr[11] = !(self.r11) /\
+	avr[12] = !(self.r12) /\
+	avr[13] = !(self.r13) /\
+	avr[14] = !(self.r14) /\
+	avr[15] = !(self.r15) /\
+	avr[16] = !(self.r16) /\
+	avr[17] = !(self.r17) /\
+	avr[18] = !(self.r18) /\
+	avr[19] = !(self.r19) /\
+	avr[20] = !(self.r20) /\
+	avr[21] = !(self.r21) /\
+	avr[22] = !(self.r22) /\
+	avr[23] = !(self.r23) /\
+	avr[24] = !(self.r24) /\
+	avr[25] = !(self.r25) /\
+	avr[26] = !(self.r26) /\
+	avr[27] = !(self.r27) /\
+	avr[28] = !(self.r28) /\
+	avr[29] = !(self.r29) /\
+	avr[30] = !(self.r30) /\
+	avr[31] = !(self.r31)
+
+val shadow: shadow_registers
+
+let ghost modify_r0 () ensures { !(shadow.r0) = reg[0] } = shadow.r0 := Map.get reg.data 0
+let ghost modify_r1 () ensures { !(shadow.r1) = reg[1] } = shadow.r1 := Map.get reg.data 1; ()
+let ghost modify_r2 () ensures { !(shadow.r2) = reg[2] } = shadow.r2 := Map.get reg.data 2
+let ghost modify_r3 () ensures { !(shadow.r3) = reg[3] } = shadow.r3 := Map.get reg.data 3
+let ghost modify_r4 () ensures { !(shadow.r4) = reg[4] } = shadow.r4 := Map.get reg.data 4
+let ghost modify_r5 () ensures { !(shadow.r5) = reg[5] } = shadow.r5 := Map.get reg.data 5
+let ghost modify_r6 () ensures { !(shadow.r6) = reg[6] } = shadow.r6 := Map.get reg.data 6
+let ghost modify_r7 () ensures { !(shadow.r7) = reg[7] } = shadow.r7 := Map.get reg.data 7
+let ghost modify_r8 () ensures { !(shadow.r8) = reg[8] } = shadow.r8 := Map.get reg.data 8
+let ghost modify_r9 () ensures { !(shadow.r9) = reg[9] } = shadow.r9 := Map.get reg.data 9
+let ghost modify_r10 () ensures { !(shadow.r10) = reg[10] } = shadow.r10 := Map.get reg.data 10
+let ghost modify_r11 () ensures { !(shadow.r11) = reg[11] } = shadow.r11 := Map.get reg.data 11
+let ghost modify_r12 () ensures { !(shadow.r12) = reg[12] } = shadow.r12 := Map.get reg.data 12
+let ghost modify_r13 () ensures { !(shadow.r13) = reg[13] } = shadow.r13 := Map.get reg.data 13
+let ghost modify_r14 () ensures { !(shadow.r14) = reg[14] } = shadow.r14 := Map.get reg.data 14
+let ghost modify_r15 () ensures { !(shadow.r15) = reg[15] } = shadow.r15 := Map.get reg.data 15
+let ghost modify_r16 () ensures { !(shadow.r16) = reg[16] } = shadow.r16 := Map.get reg.data 16
+let ghost modify_r17 () ensures { !(shadow.r17) = reg[17] } = shadow.r17 := Map.get reg.data 17
+let ghost modify_r18 () ensures { !(shadow.r18) = reg[18] } = shadow.r18 := Map.get reg.data 18
+let ghost modify_r19 () ensures { !(shadow.r19) = reg[19] } = shadow.r19 := Map.get reg.data 19
+let ghost modify_r20 () ensures { !(shadow.r20) = reg[20] } = shadow.r20 := Map.get reg.data 20
+let ghost modify_r21 () ensures { !(shadow.r21) = reg[21] } = shadow.r21 := Map.get reg.data 21
+let ghost modify_r22 () ensures { !(shadow.r22) = reg[22] } = shadow.r22 := Map.get reg.data 22
+let ghost modify_r23 () ensures { !(shadow.r23) = reg[23] } = shadow.r23 := Map.get reg.data 23
+let ghost modify_r24 () ensures { !(shadow.r24) = reg[24] } = shadow.r24 := Map.get reg.data 24
+let ghost modify_r25 () ensures { !(shadow.r25) = reg[25] } = shadow.r25 := Map.get reg.data 25
+let ghost modify_r26 () ensures { !(shadow.r26) = reg[26] } = shadow.r26 := Map.get reg.data 26
+let ghost modify_r27 () ensures { !(shadow.r27) = reg[27] } = shadow.r27 := Map.get reg.data 27
+let ghost modify_r28 () ensures { !(shadow.r28) = reg[28] } = shadow.r28 := Map.get reg.data 28
+let ghost modify_r29 () ensures { !(shadow.r29) = reg[29] } = shadow.r29 := Map.get reg.data 29
+let ghost modify_r30 () ensures { !(shadow.r30) = reg[30] } = shadow.r30 := Map.get reg.data 30
+let ghost modify_r31 () ensures { !(shadow.r31) = reg[31] } = shadow.r31 := Map.get reg.data 31
+
+let ghost init() ensures { synchronized shadow reg } =
+  modify_r0 ();
+  modify_r1 ();
+  modify_r2 ();
+  modify_r3 ();
+  modify_r4 ();
+  modify_r5 ();
+  modify_r6 ();
+  modify_r7 ();
+  modify_r8 ();
+  modify_r9 ();
+  modify_r10 ();
+  modify_r11 ();
+  modify_r12 ();
+  modify_r13 ();
+  modify_r14 ();
+  modify_r15 ();
+  modify_r16 ();
+  modify_r17 ();
+  modify_r18 ();
+  modify_r19 ();
+  modify_r20 ();
+  modify_r21 ();
+  modify_r22 ();
+  modify_r23 ();
+  modify_r24 ();
+  modify_r25 ();
+  modify_r26 ();
+  modify_r27 ();
+  modify_r28 ();
+  modify_r29 ();
+  modify_r30 ();
+  modify_r31 ();
+  ()
+
+end

@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE why3session PUBLIC "-//Why3//proof session v5//EN"
+"http://why3.lri.fr/why3session.dtd">
+<why3session shape_version="4">
+<prover id="0" name="CVC3" version="2.4.1" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="1" name="Eprover" version="2.0" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="2" name="CVC4" version="1.6" alternative="noBV" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="3" name="Z3" version="4.6.0" alternative="noBV" timelimit="13" steplimit="0" memlimit="8000"/>
+<file name="../curve25519_extra.mlw">
+<theory name="ScaleCorrectness" sum="7bf64a68d63c558e73c3aa81f24734fd">
+ <goal name="add_eq" expl="">
+ <transf name="compute_in_goal">
+  <goal name="add_eq.1" expl="">
+  <transf name="eliminate_definition">
+   <goal name="add_eq.1.1" expl="">
+   <transf name="split_goal_wp">
+    <goal name="add_eq.1.1.1" expl="">
+    <proof prover="3"><result status="valid" time="0.65"/></proof>
+    </goal>
+    <goal name="add_eq.1.1.2" expl="">
+    <proof prover="3"><result status="valid" time="0.16"/></proof>
+    </goal>
+   </transf>
+   </goal>
+  </transf>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="double_eq" expl="">
+ <transf name="compute_in_goal">
+  <goal name="double_eq.1" expl="">
+  <proof prover="3"><result status="valid" time="0.43"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter ladder_eq" expl="VC for ladder_eq">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter ladder_eq.1" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.12"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_eq.2" expl="postcondition">
+  <proof prover="0"><result status="valid" time="1.77"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_eq.3" expl="assertion">
+  <proof prover="0"><result status="valid" time="1.89"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_eq.4" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter ladder_eq.4.1" expl="VC for ladder_eq">
+   <transf name="compute_in_goal">
+    <goal name="WP_parameter ladder_eq.4.1.1" expl="VC for ladder_eq">
+    <proof prover="0"><result status="valid" time="0.06"/></proof>
+    </goal>
+   </transf>
+   </goal>
+   <goal name="WP_parameter ladder_eq.4.2" expl="VC for ladder_eq">
+   <proof prover="2"><result status="valid" time="0.36"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladder_eq.5" expl="postcondition">
+  <proof prover="0"><result status="valid" time="2.96"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_eq.6" expl="variant decrease">
+  <proof prover="0"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_eq.7" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_eq.8" expl="variant decrease">
+  <proof prover="0"><result status="valid" time="0.13"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_eq.9" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.11"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_eq.10" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.49"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_eq.11" expl="assertion">
+  <proof prover="1"><result status="valid" time="0.12"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_eq.12" expl="postcondition">
+  <proof prover="0"><result status="valid" time="6.06"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_eq.13" expl="postcondition">
+  <proof prover="0"><result status="valid" time="2.42"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="mult_0" expl="">
+ <proof prover="0"><result status="valid" time="0.12"/></proof>
+ </goal>
+ <goal name="mult_1" expl="">
+ <transf name="split_goal_wp">
+  <goal name="mult_1.1" expl="">
+  <proof prover="0"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="mult_1.2" expl="">
+  <proof prover="0"><result status="valid" time="0.13"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="mult_even" expl="">
+ <transf name="split_goal_wp">
+  <goal name="mult_even.1" expl="">
+  <proof prover="0"><result status="valid" time="0.89"/></proof>
+  </goal>
+  <goal name="mult_even.2" expl="">
+  <proof prover="0"><result status="valid" time="0.35"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="mult_odd" expl="">
+ <transf name="split_goal_wp">
+  <goal name="mult_odd.1" expl="">
+  <proof prover="2"><result status="valid" time="0.14"/></proof>
+  </goal>
+  <goal name="mult_odd.2" expl="">
+  <proof prover="2"><result status="valid" time="0.14"/></proof>
+  </goal>
+  <goal name="mult_odd.3" expl="">
+  <proof prover="2"><result status="valid" time="0.16"/></proof>
+  </goal>
+  <goal name="mult_odd.4" expl="">
+  <proof prover="2"><result status="valid" time="0.14"/></proof>
+  </goal>
+  <goal name="mult_odd.5" expl="">
+  <proof prover="2"><result status="valid" time="0.09"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter ladder_zero_inf" expl="VC for ladder_zero_inf">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter ladder_zero_inf.1" expl="variant decrease">
+  <proof prover="0" timelimit="130"><result status="valid" time="0.11"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_zero_inf.2" expl="precondition">
+  <proof prover="0" timelimit="130"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_zero_inf.3" expl="variant decrease">
+  <proof prover="0" timelimit="130"><result status="valid" time="0.77"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_zero_inf.4" expl="precondition">
+  <proof prover="0" timelimit="130"><result status="valid" time="0.12"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_zero_inf.5" expl="assertion">
+  <proof prover="0" timelimit="130"><result status="valid" time="0.51"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_zero_inf.6" expl="postcondition">
+  <proof prover="0" timelimit="130"><result status="valid" time="2.26"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_zero_inf.7" expl="postcondition">
+  <proof prover="0" timelimit="130"><result status="valid" time="3.85"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_zero_inf.8" expl="assertion">
+  <proof prover="0" timelimit="130"><result status="valid" time="1.28"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_zero_inf.9" expl="postcondition">
+  <proof prover="0" timelimit="130"><result status="valid" time="1.79"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_zero_inf.10" expl="postcondition">
+  <proof prover="0" timelimit="130"><result status="valid" time="3.57"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_zero_inf.11" expl="postcondition">
+  <proof prover="0" timelimit="130"><result status="valid" time="1.32"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_zero_inf.12" expl="postcondition">
+  <proof prover="0" timelimit="130"><result status="valid" time="3.37"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_zero_inf.13" expl="postcondition">
+  <proof prover="0" timelimit="130"><result status="valid" time="0.19"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_zero_inf.14" expl="postcondition">
+  <proof prover="0" timelimit="130"><result status="valid" time="0.19"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="zero_can_standin_for_infty" expl="">
+ <proof prover="2" timelimit="130"><result status="valid" time="0.13"/></proof>
+ </goal>
+</theory>
+<theory name="LadderSoundness" sum="dc80602d71595ce4d4fcba8cab0ab5bc">
+ <goal name="WP_parameter ladder_is_functional" expl="VC for ladder_is_functional">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter ladder_is_functional.1" expl="variant decrease">
+  <proof prover="0"><result status="valid" time="0.09"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_is_functional.2" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_is_functional.3" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.13"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_is_functional.4" expl="postcondition">
+  <proof prover="0"><result status="valid" time="0.09"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_is_functional.5" expl="postcondition">
+  <transf name="inversion_pr">
+   <goal name="WP_parameter ladder_is_functional.5.1" expl="VC for ladder_is_functional">
+   <proof prover="2"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter ladder_is_functional.5.2" expl="VC for ladder_is_functional">
+   <proof prover="2"><result status="valid" time="0.11"/></proof>
+   </goal>
+   <goal name="WP_parameter ladder_is_functional.5.3" expl="VC for ladder_is_functional">
+   <proof prover="2"><result status="valid" time="0.02"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladder_is_functional.6" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_is_functional.7" expl="postcondition">
+  <proof prover="0"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_is_functional.8" expl="postcondition">
+  <transf name="induction_pr">
+   <goal name="WP_parameter ladder_is_functional.8.1" expl="VC for ladder_is_functional">
+   <proof prover="2"><result status="valid" time="0.04"/></proof>
+   </goal>
+   <goal name="WP_parameter ladder_is_functional.8.2" expl="VC for ladder_is_functional">
+   <proof prover="2"><result status="valid" time="0.28"/></proof>
+   </goal>
+   <goal name="WP_parameter ladder_is_functional.8.3" expl="VC for ladder_is_functional">
+   <proof prover="2"><result status="valid" time="7.91"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladder_is_functional.9" expl="postcondition">
+  <proof prover="1"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter ladder_is_functional.10" expl="postcondition">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="EC.ladder_0" expl="">
+ <transf name="compute_in_goal">
+  <goal name="ladder_0.1" expl="">
+  <proof prover="2"><result status="valid" time="0.95"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="EC.ladder_even" expl="">
+ <transf name="compute_in_goal">
+  <goal name="ladder_even.1" expl="">
+  <proof prover="2"><result status="valid" time="6.76"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="EC.ladder_odd" expl="">
+ <transf name="compute_in_goal">
+  <goal name="ladder_odd.1" expl="">
+  <proof prover="2"><result status="valid" time="6.64"/></proof>
+  </goal>
+ </transf>
+ </goal>
+</theory>
+</file>
+</why3session>

@@ -1,0 +1,162 @@
+module ModArith
+
+use import ref.Ref
+use import int.Int
+use import int.EuclideanDivision
+use import number.Gcd
+
+lemma mul_distribute:
+  forall m a, x. m <> 0 -> mod (x*a) m = mod (mod x m*a) m
+
+goal mul_monotone:
+  forall m a, x y. m <> 0 -> mod x m = mod y m -> mod (a*x) m = mod (a*y) m
+
+(* computes the inverse of b modulo a *)
+let inverse (m x: int): int
+  requires { m > 1 /\ x > 0 /\ gcd m x = 1 }
+  ensures { mod (result*x) m = 1 }
+  ensures { 0 < result < m }
+= 
+  let (:=) (var: (ref 'a, ref 'b)) (value: ('a, 'b))
+    ensures { let (x,y) = var in (!x,!y) = value }
+  = let ((x,y),(a,b)) = (var,value) in x := a; y := b
+in
+  let (a, b)  = (ref m, ref x) in
+  let (t0,t1) = (ref 0, ref 1) in
+  let (s0,s1) = ghost (ref 1, ref 0) in
+'Begin:
+  while !b <> 1 do
+    invariant { !s0*m + !t0*x = !a > 0 }
+    invariant { !s1*m + !t1*x = !b > 0 }
+    invariant { gcd !a !b = 1 }
+    variant { !b }
+    let q = div !a !b in
+    (t0,t1) := (!t1, !t0 - q * !t1);
+    (s0,s1) := (!s1, !s0 - q * !s1);
+    (a,b) := (!b, mod !a !b)
+  done;
+  mod !t1 m
+
+end
+
+module FiniteField
+
+use export int.Int
+use export int.EuclideanDivision
+use export number.Divisibility
+use export number.Prime
+use export ModArith
+
+constant p: int
+
+axiom p_def: prime p
+
+predicate (==) (x y: int)
+  = mod x p = mod y p
+
+lemma mul_mono:
+  forall a. forall x y. x == y -> a*x == a*y
+
+let ghost mul_injective (a: int) (x y: int)
+  requires { not a == 0 }
+  requires { a*x == a*y }
+  ensures { x == y }
+= let a' = inverse p (mod a p) in 
+  (* this is a bit strange, but Why3 can be really dumb sometimes -- compare mul_injective below *)
+  let mono_force (a: int) (x y: int)
+    requires { x == y } ensures { a*x == a*y }
+  = () in
+  mono_force x (a*a') 1;
+  mono_force y (a*a') 1;
+  mono_force a' (a*x) (a*y)
+
+end
+
+module Fermat
+
+use import number.Prime
+constant p: int
+
+axiom p_prime: prime p
+
+clone import FiniteField with
+  constant p = p, goal p_def
+
+use import int.Power
+use import ref.Ref
+use import list.List
+use import list.Mem
+use import list.NumOcc
+use import list.Permut
+
+function prod (p: list int): int =
+  match p with Nil -> 1 
+             | Cons n p' -> n*prod p'
+  end
+
+let rec ghost prod_permut (p q: list int)
+  variant { p }
+  requires { permut p q }
+  ensures { prod p = prod q }
+= match p with 
+  | Nil -> ()
+  | Cons n p ->
+      let rec filter (q: list int): list int
+        requires { mem n q }
+        ensures { permut (Cons n result) q }
+        ensures { prod result*n = prod q }
+        variant { q }
+      = match q with
+        | Nil -> absurd
+        | Cons n' q -> if n = n' then q else Cons n' (filter q)
+        end
+      in prod_permut p (filter q)
+  end
+
+let lemma mul_injective (a: int) (x y: int)
+  requires { not a == 0 }
+  requires { a*x == a*y }
+  ensures { x == y }
+= let a' = inverse p (mod a p) in 
+  assert { a'*a == 1 };
+  assert { x == (a'*a)*x = a'*(a*x) == a'*(a*y) = (a'*a)*y == y }
+
+let lemma fermat (a: int)
+  requires { not divides p a }
+  ensures { power a (p-1) == 1 }
+= let fac1  = ref Nil in
+  let fac2 = ref Nil in
+  let n    = ref 1 in
+  for i = 1 to (p-1) do
+    invariant { forall x. mem x (!fac1) <-> 0 < x < i }
+    invariant { forall x. mem (mod (a*x) p) (!fac2) <-> 0 < mod x p < i }
+    invariant { forall x. mem x (!fac2)  -> 0 < x < p }
+    invariant { forall x. num_occ x (!fac1) <= 1 /\ num_occ x (!fac2) <= 1 }
+    invariant { prod (!fac2) == !n == power a (i-1) * prod (!fac1) }
+    invariant { mod !n p <> 0 }
+    let i' = mod (a*i) p in
+    assert { !n * i == power a (i-1) * (i*prod (!fac1)) };
+    fac1 := Cons i (!fac1);
+
+    assert { !n * i * a == a*power a (i-1) * prod (!fac1) = power a i * prod (!fac1) };
+    assert { !n * i * a == !n * i' = i' * !n by
+             i' == a*i by mod (mod (a*i) p) p = mod (a*i) p };
+
+    assert { i' * prod (!fac2) == i' * !n == !n*i*a };
+    assert { not !n == 0 };
+    fac2 := Cons i' (!fac2);
+    n    := !n * i * a;
+    assert { forall x. a*x == a*i <-> mod x p = mod i p = i };
+    assert { not !n == 0 };
+  done;
+  let a' = inverse p (mod a p) in
+  assert { forall x. 0 < x < p -> mem x (!fac2) 
+           by mem (mod x p) (!fac2) 
+           by (a*a'*x == x by a*a' == 1) /\ mem (mod (a*a'*x) p) (!fac2) 
+           by 0 < mod (a'*x) p 
+         };
+  prod_permut (!fac1) (!fac2);
+  mul_injective (prod (!fac1)) 1 (power a (p-1))
+
+end
+

@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE why3session PUBLIC "-//Why3//proof session v5//EN"
+"http://why3.lri.fr/why3session.dtd">
+<why3session shape_version="4">
+<prover id="0" name="CVC3" version="2.4.1" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="1" name="CVC4" version="1.6" alternative="noBV" timelimit="130" steplimit="0" memlimit="8000"/>
+<prover id="2" name="Eprover" version="2.0" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="4" name="Z3" version="4.6.0" alternative="noBV" timelimit="130" steplimit="0" memlimit="8000"/>
+<file name="../curve25519.mlw">
+<theory name="Montgomery" sum="d41d8cd98f00b204e9800998ecf8427e">
+</theory>
+<theory name="Curve25519" sum="47abb8f0a76f191d24c8ddae40bcbd7f">
+ <goal name="WP_parameter prefix ?" expl="VC for prefix ?">
+ <proof prover="0"><result status="valid" time="0.05"/></proof>
+ </goal>
+ <goal name="WP_parameter __static_init" expl="VC for __static_init">
+ <transf name="compute_in_goal">
+  <goal name="WP_parameter __static_init.1" expl="VC for __static_init">
+  <proof prover="0"><result status="valid" time="0.47"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter work_cswap" expl="VC for work_cswap">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter work_cswap.1" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter work_cswap.2" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter work_cswap.3" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter work_cswap.4" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter work_cswap.5" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter work_cswap.6" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter work_cswap.7" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter work_cswap.8" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.31"/></proof>
+  </goal>
+  <goal name="WP_parameter work_cswap.9" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.36"/></proof>
+  </goal>
+  <goal name="WP_parameter work_cswap.10" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.46"/></proof>
+  </goal>
+  <goal name="WP_parameter work_cswap.11" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.46"/></proof>
+  </goal>
+  <goal name="WP_parameter work_cswap.12" expl="postcondition">
+  <proof prover="0"><result status="valid" time="0.66"/></proof>
+  </goal>
+  <goal name="WP_parameter work_cswap.13" expl="postcondition">
+  <proof prover="0"><result status="valid" time="0.66"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="eqv_implication" expl="">
+ <proof prover="0"><result status="valid" time="0.79"/></proof>
+ </goal>
+ <goal name="congruence_mul" expl="">
+ <proof prover="0"><result status="valid" time="0.13"/></proof>
+ </goal>
+ <goal name="congruence_add" expl="">
+ <proof prover="0"><result status="valid" time="0.13"/></proof>
+ </goal>
+ <goal name="congruence_sub" expl="">
+ <proof prover="0"><result status="valid" time="0.12"/></proof>
+ </goal>
+ <goal name="congruence_trans" expl="">
+ <proof prover="0"><result status="valid" time="0.04"/></proof>
+ </goal>
+ <goal name="WP_parameter ladderstep" expl="VC for ladderstep">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter ladderstep.1" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter ladderstep.1.1" expl="assertion">
+   <proof prover="0"><result status="valid" time="0.06"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.2" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter ladderstep.2.1" expl="assertion">
+   <proof prover="4"><result status="valid" time="0.03"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.3" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.4" expl="assertion">
+  <proof prover="4" timelimit="13"><result status="valid" time="2.58"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.5" expl="assertion">
+  <proof prover="4"><result status="valid" time="2.96"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.6" expl="assertion">
+  <proof prover="1" timelimit="13"><result status="valid" time="0.41"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.7" expl="assertion">
+  <proof prover="4" timelimit="30"><result status="valid" time="32.48"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.8" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.67"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.9" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter ladderstep.9.1" expl="VC for ladderstep">
+   <proof prover="4"><result status="valid" time="6.66"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.9.2" expl="VC for ladderstep">
+   <proof prover="1"><result status="valid" time="14.03"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.9.3" expl="VC for ladderstep">
+   <proof prover="1"><result status="valid" time="0.10"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.10" expl="precondition">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter ladderstep.10.1" expl="precondition">
+   <proof prover="0"><result status="valid" time="5.26"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.11" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter ladderstep.11.1" expl="VC for ladderstep">
+   <proof prover="4" timelimit="13"><result status="valid" time="0.02"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.11.2" expl="VC for ladderstep">
+   <proof prover="2"><result status="valid" time="8.10"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.11.3" expl="VC for ladderstep">
+   <proof prover="4" timelimit="13"><result status="valid" time="0.11"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.12" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter ladderstep.12.1" expl="assertion">
+   <proof prover="4"><result status="valid" time="17.26"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.13" expl="assertion">
+  <proof prover="4"><result status="valid" time="25.60"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.14" expl="assertion">
+  <proof prover="4"><result status="valid" time="0.02"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.15" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter ladderstep.15.1" expl="VC for ladderstep">
+   <proof prover="1"><result status="valid" time="0.11"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.15.2" expl="VC for ladderstep">
+   <proof prover="2" timelimit="30"><result status="valid" time="0.07"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.15.3" expl="VC for ladderstep">
+   <proof prover="2" timelimit="30"><result status="valid" time="0.18"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.15.4" expl="VC for ladderstep">
+   <proof prover="1" timelimit="30"><result status="valid" time="0.11"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.16" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter ladderstep.16.1" expl="VC for ladderstep">
+   <proof prover="4" timelimit="13"><result status="valid" time="0.02"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.16.2" expl="VC for ladderstep">
+   <proof prover="4" timelimit="13"><result status="valid" time="0.12"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.16.3" expl="VC for ladderstep">
+   <proof prover="4" timelimit="13"><result status="valid" time="0.12"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.17" expl="assertion">
+  <proof prover="1" timelimit="60"><result status="valid" time="17.11"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.18" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter ladderstep.18.1" expl="VC for ladderstep">
+   <proof prover="4"><result status="valid" time="0.02"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.18.2" expl="VC for ladderstep">
+   <proof prover="2" timelimit="130"><result status="valid" time="0.08"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.18.3" expl="VC for ladderstep">
+   <proof prover="1"><result status="valid" time="0.12"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.19" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter ladderstep.19.1" expl="VC for ladderstep">
+   <proof prover="1"><result status="valid" time="0.04"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.19.2" expl="VC for ladderstep">
+   <proof prover="4"><result status="valid" time="0.14"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.19.3" expl="VC for ladderstep">
+   <proof prover="1" timelimit="13"><result status="valid" time="0.11"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.20" expl="assertion">
+  <proof prover="1" timelimit="60"><result status="valid" time="18.62"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.21" expl="VC for ladderstep">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter ladderstep.21.1" expl="VC for ladderstep">
+   <proof prover="0"><result status="valid" time="0.80"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.21.2" expl="VC for ladderstep">
+   <proof prover="2" timelimit="130"><result status="valid" time="0.02"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.21.3" expl="VC for ladderstep">
+   <proof prover="2" timelimit="130"><result status="valid" time="0.02"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.22" expl="VC for ladderstep">
+  <proof prover="4" timelimit="13"><result status="valid" time="0.02"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.23" expl="VC for ladderstep">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter ladderstep.23.1" expl="VC for ladderstep">
+   <proof prover="1"><result status="valid" time="0.06"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.23.2" expl="VC for ladderstep">
+   <proof prover="1"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.23.3" expl="VC for ladderstep">
+   <proof prover="2"><result status="valid" time="0.03"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.24" expl="VC for ladderstep">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter ladderstep.24.1" expl="VC for ladderstep">
+   <proof prover="1"><result status="valid" time="21.94"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.24.2" expl="VC for ladderstep">
+   <proof prover="1" timelimit="13"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.24.3" expl="VC for ladderstep">
+   <proof prover="2"><result status="valid" time="0.07"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.25" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter ladderstep.25.1" expl="assertion">
+   <transf name="compute_in_goal">
+   </transf>
+   </goal>
+   <goal name="WP_parameter ladderstep.25.2" expl="assertion">
+   <transf name="compute_in_goal">
+   </transf>
+   </goal>
+   <goal name="WP_parameter ladderstep.25.3" expl="assertion">
+   <transf name="compute_in_goal">
+   </transf>
+   </goal>
+   <goal name="WP_parameter ladderstep.25.4" expl="assertion">
+   <transf name="compute_in_goal">
+   </transf>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter ladderstep.26" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.27" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.28" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.29" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter ladderstep.30" expl="postcondition">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter ladderstep.30.1" expl="postcondition">
+   <proof prover="2"><result status="valid" time="0.02"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.30.2" expl="postcondition">
+   <proof prover="0" timelimit="300"><result status="valid" time="65.81"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.30.3" expl="postcondition">
+   <proof prover="0"><result status="valid" time="0.55"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.30.4" expl="postcondition">
+   <proof prover="0"><result status="valid" time="0.53"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.30.5" expl="postcondition">
+   <proof prover="0"><result status="valid" time="0.06"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.30.6" expl="postcondition">
+   <proof prover="0"><result status="valid" time="0.06"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.30.7" expl="postcondition">
+   <proof prover="0"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter ladderstep.30.8" expl="postcondition">
+   <proof prover="0"><result status="valid" time="0.05"/></proof>
+   </goal>
+  </transf>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="degenerate" expl="">
+ <transf name="split_goal_wp">
+  <goal name="degenerate.1" expl="">
+  <proof prover="0"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="degenerate.2" expl="">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="degenerate.3" expl="">
+  <proof prover="0"><result status="valid" time="0.89"/></proof>
+  </goal>
+  <goal name="degenerate.4" expl="">
+  <proof prover="0"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="degenerate.5" expl="">
+  <proof prover="0"><result status="valid" time="0.11"/></proof>
+  </goal>
+ </transf>
+ </goal>
+</theory>
+</file>
+</why3session>

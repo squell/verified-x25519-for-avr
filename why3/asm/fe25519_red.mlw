@@ -1,0 +1,368 @@
+module AVRcode
+
+use import avrmodel.AVRint
+use import int.Int
+use import int.EuclideanDivision
+use import bv.Pow2int
+use import common_lemmas.AvrModelLemmas
+use common_lemmas.BV_asr_Lemmas
+use bv.BV8
+use import ref.Ref
+
+use import int.Abs
+
+use avrmodel.Shadow as S
+
+let ghost bounded_uint (w: int) (reg: address_space) (lo: register): int
+  requires { w >= 0 }
+  ensures { result = uint w reg lo }
+  ensures { 0 <= result < pow2 (8*w)}
+= uint_bound reg lo w; uint w reg lo
+
+let ghost as_copy (avr: address_space): address_space
+ensures {result.data = avr.data}
+= {data = avr.data}
+
+let reduction_loop_iter (ghost x y z: int) (ghost xv yv: int): unit
+requires { z = uint 2 reg rZ /\
+           x = uint 2 reg rX /\
+           y = uint 2 reg rY /\
+           xv = mem[x] /\
+           yv = mem[y] /\
+           32 <= x < (pow2 16) -1 /\
+           32 <= y < (pow2 16) -1 /\
+           32 <= z < (pow2 16) -1 /\
+           reg[r18] = 0 /\
+           reg[r19] = 38 }
+requires { S.synchronized S.shadow reg }
+
+ensures { mem = old (mem[z <- mod (xv + reg[r23] + yv*38) 256]) }
+ensures { reg[r23] = old (div (xv + reg[r23] + yv*38) 256) }
+ensures { uint 2 reg rZ = 1 + z}
+ensures { uint 2 reg rX = 1 + x}
+ensures { uint 2 reg rY = 1 + y}
+ensures { S.synchronized S.shadow reg }
+=
+'B:
+  ld_inc r21 rX; (* load r1  indirect from ram *)
+  ld_inc r22 rY; (* load r33 indirect from ram *)
+  mul r22 r19;
+  add r21 r23;
+  clr r23;
+  adc r23 r1;
+  add r21 r0;
+  adc r23 r18;
+  st_inc rZ r21;
+
+  assert { reg[r23] = at(mod (
+            div (yv*38) 256 + div (xv + reg[r23]) 256
+            +
+            (div (mod (yv*38) 256 + mod (xv + reg[r23]) 256) 256)
+          ) 256)'B };
+  assert {forall x y z.
+    let to_prove = mod (div (y*38) 256 + div (x + z) 256 + (div (mod (y*38) 256 + mod (x + z) 256) 256)) 256 = div (y*38 + x + z) 256 in
+    0 <=x < 256 -> 0 <= y < 256 -> 0 <= z < 256 -> to_prove by
+    (x > 0 /\ y > 0 /\ z > 0 -> to_prove) /\
+    (x = 0 /\ y > 0 /\ z >= 0 -> to_prove) /\
+    (x >= 0 /\ y > 0 /\ z = 0 -> to_prove) /\
+    (x > 0 /\ y = 0 /\ z > 0 -> to_prove)};
+
+  S.modify_r0();
+  S.modify_r1();
+  S.modify_r21();
+  S.modify_r22();
+  S.modify_r23();
+  S.modify_r20();
+  S.modify_r26();
+  S.modify_r27();
+  S.modify_r28();
+  S.modify_r29();
+  S.modify_r30();
+  S.modify_r31()
+
+let reduction_loop_10iter (ghost x y z: int) (ghost xv yv: int): unit
+requires {
+  z = uint 2 reg rZ /\
+  x = uint 2 reg rX /\
+  y = uint 2 reg rY /\
+  xv = uint 10 mem x /\
+  yv = uint 10 mem y /\
+  32 <= x < (pow2 16) -10 /\
+  32 <= y < (pow2 16) -10 /\
+  32 <= z < (pow2 16) -10 /\
+  reg[r18] = 0 /\
+  reg[r19] = 38 /\
+  (z < x - 9 \/ z > x + 9) /\
+  (z < y - 9 \/ z > y + 9) /\
+  y = x + 32
+  }
+  requires { S.synchronized S.shadow reg }
+  ensures { uint 10 mem z = xv + 38*yv + uint 1 (old reg) 23 - (pow2 80)*uint 1 reg 23 }
+  ensures { uint 2 reg rZ = z + 10 }
+  ensures { uint 2 reg rY = y + 10 }
+  ensures { uint 2 reg rX = x + 10 }
+  ensures { forall i. i < z \/ i > z + 9 -> mem[i] = (old mem)[i] }
+  ensures { S.synchronized S.shadow reg }
+= let ghost x1  = bounded_uint 1 mem x in
+  let ghost x2  = bounded_uint 1 mem (x+1) in
+  let ghost x3  = bounded_uint 1 mem (x+2) in
+  let ghost x4  = bounded_uint 1 mem (x+3) in
+  let ghost x5  = bounded_uint 1 mem (x+4) in
+  let ghost x6  = bounded_uint 1 mem (x+5) in
+  let ghost x7  = bounded_uint 1 mem (x+6) in
+  let ghost x8  = bounded_uint 1 mem (x+7) in
+  let ghost x9  = bounded_uint 1 mem (x+8) in
+  let ghost x10 = bounded_uint 1 mem (x+9) in
+
+  let ghost y1  = bounded_uint 1 mem y in
+  let ghost y2  = bounded_uint 1 mem (y+1) in
+  let ghost y3  = bounded_uint 1 mem (y+2) in
+  let ghost y4  = bounded_uint 1 mem (y+3) in
+  let ghost y5  = bounded_uint 1 mem (y+4) in
+  let ghost y6  = bounded_uint 1 mem (y+5) in
+  let ghost y7  = bounded_uint 1 mem (y+6) in
+  let ghost y8  = bounded_uint 1 mem (y+7) in
+  let ghost y9  = bounded_uint 1 mem (y+8) in
+  let ghost y10 = bounded_uint 1 mem (y+9) in
+
+  reduction_loop_iter  x     y     z    x1 y1; (* 01 *)
+  reduction_loop_iter (x+1) (y+1) (z+1) x2 y2; (* 02 *)
+  reduction_loop_iter (x+2) (y+2) (z+2) x3 y3; (* 03 *)
+  reduction_loop_iter (x+3) (y+3) (z+3) x4 y4; (* 04 *)
+  reduction_loop_iter (x+4) (y+4) (z+4) x5 y5; (* 05 *)
+  reduction_loop_iter (x+5) (y+5) (z+5) x6 y6; (* 06 *)
+  reduction_loop_iter (x+6) (y+6) (z+6) x7 y7; (* 07 *)
+  reduction_loop_iter (x+7) (y+7) (z+7) x8 y8; (* 08 *)
+  reduction_loop_iter (x+8) (y+8) (z+8) x9 y9; (* 09 *)
+  reduction_loop_iter (x+9) (y+9) (z+9) x10 y10 (* 10 *)
+
+(* *******************************************************
+ * avrnacl_fe25519_red
+ * reduces the result modulo 2^256-38
+ *
+ * Inputs:
+ *    r       in register R25:R24
+ *    C       in register R23:R22
+ *)
+
+(* note: this is different from the relation of fe25519_add/sub;
+   however, it is implied by the contract of those functions, as demonstrated below *)
+predicate (===) (x y: int) = mod x (pow2 255-19) = mod y (pow2 255-19)
+
+goal congruence_compatibility:
+  forall x y: int. mod x (pow2 256-38) = mod y (pow2 256-38) -> x === y
+
+(* this is easier to prove at the 'theory' level (where the type invariant doesn't come into play) for some reason *)
+lemma equiv_result_helper:
+  forall mem, o.
+    let byte31 = mem[o+31] + 38*mem[o+63] in
+    uint 31 mem o + 38*uint 31 mem (o+32) + 38*div byte31 256 + 19*div (mod byte31 256) 128 + pow2 248*mod byte31 128
+    ===
+    uint 32 mem o + pow2 256*uint 32 mem (o+32)
+
+(* relate the behaviour of the function to the high-level behaviour we expect
+   note: it's tempting to simplify the obscure looking precondition formula below to:
+
+     uint 31 mem o + 38*uint 31 mem (o+32) + 19*div byte31 128 + pow2 248*mod byte31 128
+
+   but that will require proving that equivalence, so we don't bother
+*)
+
+let ghost equiv_result (mem': address_space) (r: int) (mem: address_space) (o: int): unit
+  requires {
+    uint 32 mem' r + ?cf*pow2 256 =
+    let byte31 = mem[o+31] + 38*mem[o+63] in
+      uint 31 mem o + 38*uint 31 mem (o+32) + 38*div byte31 256 + 19*div (mod byte31 256) 128 + pow2 248*mod byte31 128
+  }
+  ensures { uint 32 mem' r === uint 64 mem o }
+  ensures { uint 32 mem' r < pow2 255 + 38*(pow2 248+37) }
+= uint_bound mem' r 32;
+  assert { ?cf = 0 };
+  assert { uint 32 mem' r < pow2 255 + 38*(pow2 248+37) }; (* uint_split pollutes the proof context too much? *)
+  uint_split mem o 64 32
+
+let avrnacl_fe25519_red ()
+  requires { 32 <= uint 2 reg 22 < pow2 15 }
+  requires { 32 <= uint 2 reg 24 < pow2 15 }
+  requires { let c_addr = uint 2 reg 22 in
+             let r_addr = uint 2 reg 24 in
+             r_addr < c_addr - 31 \/ r_addr > c_addr + 63 }
+
+  ensures { let r_addr = old (uint 2 reg 24) in
+            let c_addr = old (uint 2 reg 22) in
+            uint 32 mem r_addr === uint 64 (old mem) c_addr /\
+            uint 32 mem r_addr < pow2 255 + 38*(pow2 248+37) }
+
+  ensures { saved_registers (old reg) reg }
+  ensures { let r = old (uint 2 reg 24) in
+            forall i. mem[i] <> (old mem)[i] -> r <= i < r + 32 }
+=
+'B:
+S.init();
+abstract
+  ensures { S.synchronized S.shadow reg }
+  ensures { reg[18] = 0 }
+  ensures { reg[19] = 38 }
+  ensures { reg[21] = mem[31 + uint 2 reg rX] }
+  ensures { reg[22] = mem[31 + uint 2 reg rY] }
+  ensures { uint 2 reg rX = old (uint 2 reg r22) }
+  ensures { uint 2 reg rY = old (uint 2 reg r22) + 32 }
+  ensures { uint 2 reg rZ = old (uint 2 reg r24) }
+  ensures { reg[24] = old reg[28] /\ reg[25] = old reg[29] }
+
+  clr r18; (* load a zero value *)
+  ldi r19 38; (* load constant 38 to r19 *)
+
+  movw r26 r22; (* load address of t in x *)
+  movw r30 r24; (* load address of r in z *)
+  movw r24 r28; (* save y register in r24 *)
+  movw r28 r22; (* put address of upper half of t in y *)
+
+  adiw r26 31; (* get ptr to byte #31  *)
+  ld r21 rX;
+  sbiw r26 31; (* restore ptr to byte #0 *)
+  adiw r28 32; (* make y point to the upper half *)
+  ldd r22 rY 31;
+
+  S.modify_r18();
+  S.modify_r19();
+  S.modify_r21();
+  S.modify_r22();
+  S.modify_r24();
+  S.modify_r25();
+  S.modify_r26();
+  S.modify_r27();
+  S.modify_r28();
+  S.modify_r29();
+  S.modify_r30();
+  S.modify_r31();
+end;
+
+  let ghost x = uint 2 reg rX in
+  let ghost y = uint 2 reg rY in
+  let ghost z = uint 2 reg rZ in
+  let ghost omem = as_copy mem in
+
+'B2:
+abstract
+    ensures { reg[19] = 38 }
+    ensures { reg[23] = old (div(
+        mem[x] + mem[y] * 38 +
+        38 * div (mem[31 + x] + mem[31 + y] * 38) 256 +
+        (19 * div (mod (mem[31 + x] + mem[31 + y] * 38) 256) 128)
+    ) 256)}
+    ensures { mem = old (
+       mem[z + 31 <- mod (mem[31 + x] + mem[31 + y]*38) 128]
+       [z <- mod (
+        mem[x] + mem[y] * 38 +
+        38 * div (mem[31 + x] + mem[31 + y] * 38) 256 +
+        19 * div (mod (mem[31 + x] + mem[31 + y] * 38) 256) 128
+       ) 256]
+    )}
+    ensures { uint 2 reg rX = old (uint 2 reg rX) + 1 }
+    ensures { uint 2 reg rY = old (uint 2 reg rY) + 1 }
+    ensures { uint 2 reg rZ = old (uint 2 reg rZ) + 1 }
+    ensures { S.synchronized S.shadow reg }
+
+  mul r22 r19; (* result to accumulate in r0:r1 *)
+  add r21 r0;
+  adc r1 r18; (* r21 and r1 now hold values for bytes #31 and #32 *)
+
+  add r21 r21;
+  adc r1 r1; (* r1 now holds the value to be multiplied with 19 *)
+  lsr r21; (* r21 now holds result content for byte #31. bit #7 cleared. *)
+  std rZ 31 r21; (* save intermediate result for byte #31 *)
+
+assert { mem = (at(mem)'B)[z + 31 <- at(mod (mem[31 + x] + mem[31 + y]*38) 128)'B]
+  by
+    mem = (at(mem)'B)[z + 31 <- at(div (mod (2* (mem[31 + x] + mem[31 + y]*38)) 256) 2)'B]
+  by
+      mem = (at(mem)'B)[z + 31 <- at(div (mod (2* mod (mem[31 + x] + mod (mem[31 + y]*38) 256) 256) 256) 2)'B]
+    /\
+      mod (2* mod (mem[31 + x] + mod (mem[31 + y]*38) 256) 256) 256 = mod (2* (mem[31 + x] + mem[31 + y]*38)) 256
+ };
+
+  ldi r19 19;
+  mul r19 r1; (* result to accumulate to word #0 in r0 r1 *)
+  ldi r19 38;
+
+  ld_inc r21 rX; (* load r0  indirect from ram *)
+  clr r23;
+  add r21 r0;
+  adc r23 r1;
+
+assert {
+  at(38 * (div (mem[31 + y] * 38) 256 + div (mem[31 + x] + mod (mem[31 + y] * 38) 256) 256))'B2 =
+  at(38 * div (mem[31 + x] + mem[31 + y] * 38) 256)'B2
+  by forall x y. 0 <= x < 256 /\ 0 <= y < 256 ->
+  38 * div (x + mod (y * 38) 256) 256 + 38 * div (y * 38) 256 =
+  38 * div (x + y*38) 256 (* Z3 can prove this with a clean proof context *)
+};
+
+assert { reg[21] = mod(mem[x] + at((38 * (div (mem[31 + x] + mem[31 + y] * 38)  256)) + (19 * div (mod (mem[31 + x] + mem[31 + y] * 38) 256) 128))'B2) 256 };
+assert { reg[23] = div(mem[x] + at((38 * (div (mem[31 + x] + mem[31 + y] * 38)  256)) + (19 * div (mod (mem[31 + x] + mem[31 + y] * 38) 256) 128))'B2) 256 };
+
+  ld_inc r22 rY; (* load r32 indirect from ram *)
+  mul r22 r19;
+  add r21 r0;
+
+  adc r23 r1;
+
+assert { reg[21] = mod (mem[x] + mem[y] * 38 + at((38 * (div (mem[31 + x] + mem[31 + y] * 38) 256)) + (19 * div (mod (mem[31 + x] + mem[31 + y] * 38) 256) 128))'B2 ) 256 };
+assert { reg[23] = div (mem[x] + mem[y] * 38 + at((38 * (div (mem[31 + x] + mem[31 + y] * 38) 256)) + (19 * div (mod (mem[31 + x] + mem[31 + y] * 38) 256) 128))'B2 ) 256 };
+
+  st_inc rZ  r21; (* ok byte #0 is finished. *)
+
+  S.modify_r0();
+  S.modify_r1();
+  S.modify_r19();
+  S.modify_r21();
+  S.modify_r22();
+  S.modify_r23();
+  S.modify_r26();
+  S.modify_r27();
+  S.modify_r28();
+  S.modify_r29();
+  S.modify_r30();
+  S.modify_r31();
+end;
+
+'B3:
+abstract
+  ensures { uint 30 mem (z+1) = uint 30 (old mem) (x+1) + 38*uint 30 (old mem) (y+1) + (old reg)[23] - (pow2 240)*reg[23] }
+  ensures { forall i. i < z + 1 \/ i > z + 30 -> mem[i] = (old mem)[i] }
+  ensures { uint 2 reg rZ = z+31 }
+  ensures { uint 2 reg rY = y+31 }
+  ensures { uint 2 reg rX = x+31 }
+
+  ensures { S.synchronized S.shadow reg }
+  let ghost ox = uint 2 reg rX in
+  let ghost oy = uint 2 reg rY in
+  let ghost oz = uint 2 reg rZ in
+
+  let ghost x1 = uint 10 mem ox in
+  let ghost x2 = uint 10 mem (ox+10) in
+  let ghost x3 = uint 10 mem (ox+20) in
+  let ghost y1 = uint 10 mem oy in
+  let ghost y2 = uint 10 mem (oy+10) in
+  let ghost y3 = uint 10 mem (oy+20) in
+
+  reduction_loop_10iter (ox+00) (oy+00) (oz+00) x1 y1;
+  reduction_loop_10iter (ox+10) (oy+10) (oz+10) x2 y2;
+  reduction_loop_10iter (ox+20) (oy+20) (oz+20) x3 y3;
+end;
+  (* ok byte #30 is finished *)
+
+  (* finalize byte #31 *)
+  ld r21 rZ;
+  add r21 r23;
+  st rZ r21;
+
+  movw r28 r24; (* restore y register *)
+
+  clr r1;
+
+  ghost equiv_result mem z omem x;
+  ()
+
+end

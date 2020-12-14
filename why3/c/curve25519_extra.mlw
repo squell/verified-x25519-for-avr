@@ -1,0 +1,136 @@
+module ScaleCorrectness
+
+(* to convince that the 'scale' function performs an actual scalar multiplication *)
+
+use import int.Int
+use import curve25519.Montgomery
+
+lemma add_eq:
+  forall p0 p1 p q. p ~ q -> add p1 p p0 ~ add p1 q p0
+    by sqr(p1.x*p.x - p1.z*p.z)*sqr(p1.x*q.z - p1.z*q.x) = sqr(p1.x*q.x - p1.z*q.z)*sqr(p1.x*p.z - p1.z*p.x)
+
+lemma double_eq:
+  forall p q. p ~ q -> double p ~ double q
+
+use import int.EuclideanDivision
+use import curve25519_mladder.Curve25519_mladder
+
+predicate (~~) (pq pq': (ratio,ratio)) =
+  let ((p,q),(p',q')) = (pq,pq') in p ~ p' /\ q ~ q'
+
+let rec lemma ladder_eq (n: int) (x: int)
+  requires { n >= 0 }
+  ensures { ladder n {x=x; z=1} ~~ (scale n x, scale (n+1) x) }
+  variant { n }
+= let p = {x=x; z=1} in
+  if n = 0 then assert { p ~ add p {x=1; z=0} p } else
+  if n = 1 then begin
+    let (r0,_) = ladder 2 p in
+    let (_,r1') = ladder 1 p in
+    assert { r0 = double (add p {x=1;z=0} p) };
+    assert { double (add p {x=1;z=0} p) ~ double p = r1' };
+  end else begin
+    let (r0,r1) = ladder (div n 2) p in
+    ladder_eq (div n 2) x;
+    if mod n 2 <> 0 then begin
+      let (r0',r1') = ladder (div (n+1) 2) p in
+      let (_,r1'') = ladder n p in
+      ladder_eq (div (n+1) 2) x;
+      assert { scale (div (n+1) 2) x = scale (div n 2+1) x };
+      assert { double r0' ~ double r1 };
+    end
+  end
+
+goal mult_0:
+  forall p. scale 0 p ~ {x=1; z=0}
+
+goal mult_1:
+  forall p. scale 1 p ~ {x=p; z=1}
+
+    by let (_,r1) = ladder 0 {x=p;z=1} in r1 = {x=p; z=1}
+
+goal mult_even:
+  forall p, n. n > 0 -> scale (2*n) p ~ double (scale n p)
+
+    by let (r0,_) = ladder (2*n) {x=p;z=1} in r0 =
+       let (r0,_) = ladder n {x=p;z=1} in double r0
+
+goal mult_odd:
+  forall p, n. n > 0 -> scale (2*n+1) p ~ add (scale (n+1) p) (scale n p) {x=p; z=1}
+
+    by let (r0',_) = ladder (2*n+1) {x=p;z=1} in
+       let (r0,r1) = ladder n {x=p;z=1} in r0' = add r1 r0 {x=p; z=1} ~ add (scale (n+1) p) (scale n p) {x=p; z=1} by r1 ~ scale (n+1) p /\ r0 ~ scale n p
+
+(* the curve25519 implementation identifies the infinity point and the x=0 zero point; basically by declaring that infinity is
+   the other point that has x-coordinate zero. this shows that this makes sense; and also that the ladder as specified computes
+   scalar multiples of infinity correctly *)
+
+let rec lemma ladder_zero_inf (n: int)
+  requires { n >= 0 }
+  ensures { ladder n {x=1; z=0} ~~ ({x=1; z=0}, {x=1; z=0}) }
+  ensures { ladder n {x=0; z=1} ~~ ({x=1; z=0}, {x=0; z=1}) \/
+            ladder n {x=0; z=1} ~~ ({x=0; z=1}, {x=1; z=0}) }
+  variant { n }
+= let p = {x=1; z=0} in
+  if n > 0 then begin
+    ladder_zero_inf (div n 2);
+    let (r0, _) = ladder (div n 2) {x=0; z=1} in
+    if mod n 2 <> 0 then begin
+      let (_,r1') = ladder (div (n+1) 2) p in
+      if n > 1 then ladder_zero_inf (div (n+1) 2);
+      assert { r1' ~ double r0 }
+    end
+  end
+
+goal zero_can_standin_for_infty:
+  forall p, n. n >= 0 ->
+    let (r,_) = ladder n p in
+    p = {x=1; z=0} \/ p = {x=0; z=1} ->
+    r ~ {x=1; z=0} \/ r ~ {x=0; z=1}
+
+end
+
+module LadderSoundness
+
+use import int.Int
+use import int.EuclideanDivision
+use import curve25519.Montgomery
+
+(* show that the axiomatisation of the ladder function is consistent by implementing it *)
+
+inductive ladder (n: int) (p r0 r1: ratio) =
+| ladder_0:
+  forall p. ladder 0 p {x=1; z=0} p
+| ladder_even:
+  forall n p r0 r1. n > 0 -> ladder n p r0 r1 -> ladder (2*n) p (double r0) (add r1 r0 p)
+| ladder_odd:
+  forall n p r0 r1. n >= 0 -> ladder n p r0 r1 -> ladder (2*n+1) p (add r1 r0 p) (double r1)
+
+let rec lemma ladder_is_functional (n: int) (p: ratio)
+  variant { n }
+  requires { n >= 0 }
+  ensures { exists r0 r1. ladder n p r0 r1 }
+  ensures { forall r0 r1. ladder n p r0 r1 ->
+            forall p0 p1. ladder n p p0 p1 -> r0 = p0 /\ r1 = p1 }
+= if n > 0 then
+  begin
+    ladder_is_functional (div n 2) p;
+    if mod n 2 = 0 then
+      assert { forall r0 r1. ladder (div n 2) p r0 r1 ->
+                 ladder n p (double r0) (add r1 r0 p) }
+    else
+      assert { forall r0 r1. ladder (div n 2) p r0 r1 ->
+                 ladder n p (add r1 r0 p) (double r1) };
+  end
+
+use HighOrd
+use set.SetComprehension as ZF
+
+function ladder' (n: int) (p: ratio): (ratio,ratio)
+  = ZF.choose (ZF.comprehension (\r. let r0, r1 = r in ladder n p r0 r1))
+
+clone curve25519_mladder.Curve25519_mladder as EC
+  with function ladder = ladder',
+       goal ladder_0, goal ladder_even, goal ladder_odd
+
+end

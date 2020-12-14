@@ -1,0 +1,1030 @@
+module AVRcode
+
+use import avrmodel.AVRint
+use import int.Int
+use import int.EuclideanDivision
+use import bv.Pow2int
+use import common_lemmas.AvrModelLemmas
+use common_lemmas.BV_asr_Lemmas
+use bv.BV8
+use import ref.Ref
+
+use import int.Abs
+
+use avrmodel.Shadow as S
+
+lemma mul_bound_preserve:
+  forall x y l. 0 <= x <= l -> 0 <= y <= l -> x*y <= l*l
+
+(* i don't think this lemma is necessary, but it does seem to speed things up a bit *)
+lemma bit_blit: forall b. BV8.t'int (bitset (BV8.of_int 0) 0 b) = (if b then 1 else 0)
+
+function as_bool (x: int): int = if x = 0 then 0 else 1
+
+predicate eq8 (m1: address_space) (o1: int) (m2: address_space) (o2: int)
+  = m1[o1+0] = m2[o2+0] /\ m1[o1+1] = m2[o2+1] /\ m1[o1+2] = m2[o2+2] /\ m1[o1+3] = m2[o2+3] /\
+    m1[o1+4] = m2[o2+4] /\ m1[o1+5] = m2[o2+5] /\ m1[o1+6] = m2[o2+6] /\ m1[o1+7] = m2[o2+7]
+
+let sqr128()
+  (* NOTE: the first eight bytes are pre-loaded *)
+  requires { eq8 reg 2 mem (uint 2 reg rY) }
+  requires { 32 <= uint 2 reg rY < pow2 15 }
+  requires { 32 <= uint 2 reg rZ < pow2 15 }
+  (* note: there is an aliassing opportunity here *)
+  requires { uint 2 reg rZ+32 <= uint 2 reg rY \/ uint 2 reg rZ >= uint 2 reg rY+16 \/ uint 2 reg rZ+8 = uint 2 reg rY }
+  ensures { 0 <= uint 32 mem (old (uint 2 reg rZ)) = old (uint 16 mem (uint 2 reg rY) * uint 16 mem (uint 2 reg rY)) <= pow2 256 - 2*pow2 128 + 1 }
+  ensures { forall i. mem[i] <> (old mem)[i] -> uint 2 reg rZ+0 <= i < uint 2 reg rZ+32 }
+  ensures { uint 2 reg rY = old (uint 2 reg rY) }
+  ensures { uint 2 reg rZ = old (uint 2 reg rZ) }
+  (* NOTE: some results are still in registers, which the caller relies on *)
+  ensures { eq8 reg 2 mem (uint 2 reg rZ+16) /\ eq8 reg 10 mem (uint 2 reg rZ+24) }
+
+  ensures { !stack_pointer = old !stack_pointer /\ forall i. i > !stack_pointer -> stack[i] = (old stack)[i] }
+=
+(*
+this is assumed to have happened:
+
+  ldd r2 rY 0;
+  ldd r3 rY 1;
+  ldd r4 rY 2;
+  ldd r5 rY 3;
+  ldd r6 rY 4;
+  ldd r7 rY 5;
+  ldd r8 rY 6;
+  ldd r9 rY 7;
+*)
+'S: S.init();
+  clr r26;
+  clr r27;
+
+  push r28;
+  push r29;
+
+S.init();
+abstract ensures { S.synchronized S.shadow reg }
+ensures { uint 8 mem (old (uint 2 reg rZ)) + pow2 64*uint 8 reg 17 = old(uint 8 reg 2 * uint 8 reg 2) }
+ensures { forall i. mem[i] <> (old mem)[i] -> uint 2 reg rZ+0 <= i < uint 2 reg rZ+8 }
+
+ (* ============ low mult ============ *)
+
+  mul r2 r3;
+  movw r10 r0;
+
+  movw r12 r26;
+  mul r2 r4;
+  add r11 r0;
+  adc r12 r1;
+
+
+  movw r14 r26;
+  mul r2 r5;
+  add r12 r0;
+  adc r13 r1;
+
+  mul r3 r4;
+  add r12 r0;
+  adc r13 r1;
+  adc r14 r26;
+
+
+  mul r2 r6;
+  add r13 r0;
+  adc r14 r1;
+
+  mul r3 r5;
+  add r13 r0;
+  adc r14 r1;
+  adc r15 r26;
+
+
+  movw r16 r26;
+  mul r2 r7;
+  add r14 r0;
+  adc r15 r1;
+  adc r16 r26;
+
+  mul r3 r6;
+  add r14 r0;
+  adc r15 r1;
+  adc r16 r26;
+
+  mul r4 r5;
+  add r14 r0;
+  adc r15 r1;
+  adc r16 r26;
+
+
+  mul r2 r8;
+  add r15 r0;
+  adc r16 r1;
+  adc r17 r26;
+
+  mul r3 r7;
+  add r15 r0;
+  adc r16 r1;
+  adc r17 r26;
+
+  mul r4 r6;
+  add r15 r0;
+  adc r16 r1;
+  adc r17 r26;
+
+
+  movw r18 r26;
+  mul r2 r9;
+  add r16 r0;
+  adc r17 r1;
+  adc r18 r26;
+
+  mul r3 r8;
+  add r16 r0;
+  adc r17 r1;
+  adc r18 r26;
+
+  mul r4 r7;
+  add r16 r0;
+  adc r17 r1;
+  adc r18 r26;
+
+  mul r5 r6;
+  add r16 r0;
+  adc r17 r1;
+  adc r18 r26;
+
+  rol r10;
+  rol r11;
+  rol r12;
+  rol r13;
+  rol r14;
+  rol r15;
+  rol r16;
+  sbc r25 r25; (* remember shift carry *)
+
+  mul r2 r2;
+  std rZ 0 r0;
+  mov r2 r1;
+  mul r3 r3;
+  movw r20 r0;
+  mul r4 r4;
+  movw r22 r0;
+  mul r5 r5;
+
+  add r10 r2;
+  std rZ 1 r10;
+  adc r11 r20;
+  std rZ 2 r11;
+  adc r12 r21;
+  std rZ 3 r12;
+  adc r13 r22;
+  std rZ 4 r13;
+  adc r14 r23;
+  std rZ 5 r14;
+  adc r15 r0;
+  std rZ 6 r15;
+  adc r16 r1;
+  std rZ 7 r16;
+
+  sbc r25 r26; (* merge carry with previous carry *)
+
+  mul r3 r9;
+  add r17 r0;
+  adc r18 r1;
+  adc r19 r26;
+
+  mul r4 r8;
+  add r17 r0;
+  adc r18 r1;
+  adc r19 r26;
+
+  mul r5 r7;
+  add r17 r0;
+  adc r18 r1;
+  adc r19 r26;
+
+
+  movw r20 r26;
+  mul r4 r9;
+  add r18 r0;
+  adc r19 r1;
+  adc r20 r26;
+
+  mul r5 r8;
+  add r18 r0;
+  adc r19 r1;
+  adc r20 r26;
+
+  mul r6 r7;
+  add r18 r0;
+  adc r19 r1;
+  adc r20 r26;
+
+
+  mul r5 r9;
+  add r19 r0;
+  adc r20 r1;
+  adc r21 r26;
+
+  mul r6 r8;
+  add r19 r0;
+  adc r20 r1;
+  adc r21 r26;
+
+  movw r22 r26;
+  mul r6 r9;
+  add r20 r0;
+  adc r21 r1;
+  adc r22 r26;
+
+  mul r7 r8;
+  add r20 r0;
+  adc r21 r1;
+  adc r22 r26;
+
+  mul r7 r9;
+  add r21 r0;
+  adc r22 r1;
+  adc r23 r26;
+
+  clr r24;
+  mul r8 r9;
+  add r22 r0;
+  adc r23 r1;
+  adc r24 r26;
+
+  rol r17;
+  rol r18;
+  rol r19;
+  rol r20;
+  rol r21;
+  rol r22;
+  rol r23;
+  rol r24;
+
+'Q:
+  mul r6 r6;
+  neg r25;
+  add r0 r25;
+  adc r1 r26;
+  movw r10 r0;
+
+  mul r7 r7;
+  movw r12 r0;
+
+  mul r8 r8;
+  movw r14 r0;
+
+  mul r9 r9;
+  movw r2 r0;
+
+  add r17 r10;
+  adc r18 r11;
+  adc r19 r12;
+  adc r20 r13;
+  adc r21 r14;
+  adc r22 r15;
+  adc r23 r2;
+  adc r24 r3;
+
+(* note: the proof of this assert is very brittle and sensitive to context, for some reason *)
+assert { uint 8 reg 17 = at(uint 8 reg 17 + reg[6]*reg[6] + pow2 16*reg[7]*reg[7] + pow2 32*reg[8]*reg[8] + pow2 48*reg[9]*reg[9] + (if reg[25] = 0 then 0 else 256 - reg[25]))'Q };
+
+S.modify_r0(); S.modify_r1();
+S.modify_r2(); S.modify_r3();
+S.modify_r10(); S.modify_r11(); S.modify_r12(); S.modify_r13(); S.modify_r14(); S.modify_r15(); S.modify_r16();
+S.modify_r17(); S.modify_r18(); S.modify_r19(); S.modify_r20(); S.modify_r21(); S.modify_r22(); S.modify_r23(); S.modify_r24();
+S.modify_r25();
+end;
+
+ (* upper half of l in r17 r18 r19 r20 r21 r22 r23 r24 *)
+
+ (* ============ high mult  acc ============ *)
+
+  ldd r2 rY 8;
+  ldd r3 rY 9;
+  ldd r4 rY 10;
+  ldd r5 rY 11;
+  ldd r6 rY 12;
+  ldd r7 rY 13;
+  ldd r8 rY 14;
+  ldd r9 rY 15;
+'L1:
+
+S.init();
+abstract 
+ensures { S.synchronized S.shadow reg }
+ensures { uint 16 mem (uint 2 reg rZ+16) = old(uint 8 reg 17 + uint 8 reg 2*uint 8 reg 2) }
+ensures { forall i. mem[i] <> (old mem)[i] -> uint 2 reg rZ+16 <= i < uint 2 reg rZ+32 }
+'B:
+
+abstract ensures  { S.synchronized S.shadow reg }
+ensures { uint 8 mem (uint 2 reg rZ+16) + (pow2 64*uint 2 reg 26 + pow2 80*uint 6 reg 19) + pow2 64*(if reg[25]=0 then 0 else 256-reg[25])
+           = old(uint 8 reg 17+ uint 8 reg 2*uint 8 reg 2 - pow2 64*reg[6]*reg[6] - pow2 80*reg[7]*reg[7] - pow2 96*reg[8]*reg[8] - pow2 112*reg[9]*reg[9]) }
+ensures { reg[17] = 0 }
+ensures { forall i. mem[i] <> (old mem)[i] -> uint 2 reg rZ+16 <= i < uint 2 reg rZ+24 }
+
+  mul r2 r3;
+  movw r10 r0;
+
+  movw r12 r26;
+  mul r2 r4;
+  add r11 r0;
+  adc r12 r1;
+
+  movw r14 r26;
+  mul r2 r5;
+  add r12 r0;
+  adc r13 r1;
+
+  mul r3 r4;
+  add r12 r0;
+  adc r13 r1;
+  adc r14 r26;
+
+  mul r2 r6;
+  add r13 r0;
+  adc r14 r1;
+
+  mul r3 r5;
+  add r13 r0;
+  adc r14 r1;
+  adc r15 r26;
+
+
+  mov r16 r26;
+  mul r2 r7;
+  add r14 r0;
+  adc r15 r1;
+  adc r16 r26;
+
+  mul r3 r6;
+  add r14 r0;
+  adc r15 r1;
+  adc r16 r26;
+
+  mul r4 r5;
+  add r14 r0;
+  adc r15 r1;
+  adc r16 r26;
+
+  mul r2 r8;
+  add r15 r0;
+  adc r16 r1;
+  adc r26 r27;
+
+  mul r3 r7;
+  add r15 r0;
+  adc r16 r1;
+  adc r26 r27;
+
+  mul r4 r6;
+  add r15 r0;
+  adc r16 r1;
+  adc r26 r27;
+
+  mul r2 r9;
+  add r16 r0;
+  adc r26 r1;
+  sbc r27 r27;
+
+  mul r3 r8;
+  add r16 r0;
+  adc r26 r1;
+  sbci r27 0;
+
+  mul r4 r7;
+  add r16 r0;
+  adc r26 r1;
+  sbci r27 0;
+
+  mul r5 r6;
+  add r16 r0;
+  adc r26 r1;
+  sbci r27 0;
+  neg r27;
+
+assert { uint 7 reg 10 + pow2 56*reg[26] + pow2 64*reg[27]
+                        = at(reg[2]*reg[3] 
+                           + pow2 8*reg[2]*reg[4]
+                           + pow2 16*(reg[2]*reg[5]+reg[3]*reg[4])
+                           + pow2 24*(reg[2]*reg[6]+reg[3]*reg[5])
+                           + pow2 32*(reg[2]*reg[7]+reg[3]*reg[6]+reg[4]*reg[5])
+                           + pow2 40*(reg[2]*reg[8]+reg[3]*reg[7]+reg[4]*reg[6])
+                           + pow2 48*(reg[2]*reg[9]+reg[3]*reg[8]+reg[4]*reg[7]+reg[5]*reg[6])
+         )'B };
+
+  lsl r10;
+  rol r11;
+  rol r12;
+  rol r13;
+  rol r14;
+  rol r15;
+  rol r16;
+  sbc r25 r25; (* remember shift carry *)
+
+  add r10 r18;
+  adc r11 r19;
+  adc r12 r20;
+  adc r13 r21;
+  adc r14 r22;
+  adc r15 r23;
+  adc r16 r24;
+  sbci r25 0; (* merge carry with previous carry *)
+
+  mul r2 r2;
+  movw r18 r0;
+  mul r3 r3;
+  movw r20 r0;
+  mul r4 r4;
+  movw r22 r0;
+  mul r5 r5;
+
+  add r18 r17;
+  std rZ 16 r18;
+  adc r10 r19;
+  std rZ 17 r10;
+  adc r11 r20;
+  std rZ 18 r11;
+  adc r12 r21;
+  std rZ 19 r12;
+  adc r13 r22;
+  std rZ 20 r13;
+  adc r14 r23;
+  std rZ 21 r14;
+  adc r15 r0;
+  std rZ 22 r15;
+  adc r16 r1;
+  std rZ 23 r16;
+
+  sbci r25 0; (* merge carry with previous carry *)
+
+  clr r17;
+  clr r19;
+  mul r3 r9;
+  add r26 r0;
+  adc r27 r1;
+  adc r19 r17;
+
+  mul r4 r8;
+  add r26 r0;
+  adc r27 r1;
+  adc r19 r17;
+
+  mul r5 r7;
+  add r26 r0;
+  adc r27 r1;
+  adc r19 r17;
+
+
+  mov r20 r17;
+  mul r4 r9;
+  add r27 r0;
+  adc r19 r1;
+  adc r20 r17;
+
+  mul r5 r8;
+  add r27 r0;
+  adc r19 r1;
+  adc r20 r17;
+
+  mul r6 r7;
+  add r27 r0;
+  adc r19 r1;
+  adc r20 r17;
+
+
+  mov r21 r17;
+  mul r5 r9;
+  add r19 r0;
+  adc r20 r1;
+  adc r21 r17;
+
+  mul r6 r8;
+  add r19 r0;
+  adc r20 r1;
+  adc r21 r17;
+
+  mov r22 r17;
+  mul r6 r9;
+  add r20 r0;
+  adc r21 r1;
+  adc r22 r17;
+
+  mul r7 r8;
+  add r20 r0;
+  adc r21 r1;
+  adc r22 r17;
+
+  mov r23 r17;
+  mul r7 r9;
+  add r21 r0;
+  adc r22 r1;
+  adc r23 r17;
+
+  clr r24;
+  mul r8 r9;
+  add r22 r0;
+  adc r23 r1;
+  adc r24 r17;
+
+  rol r26;
+  rol r27;
+  rol r19;
+  rol r20;
+  rol r21;
+  rol r22;
+  rol r23;
+  rol r24;
+
+S.modify_r0(); S.modify_r1();
+S.modify_r25(); S.modify_r26(); S.modify_r27();
+S.modify_r19(); S.modify_r20(); S.modify_r21(); S.modify_r22(); S.modify_r23(); S.modify_r24();
+S.modify_r10(); S.modify_r11(); S.modify_r12(); S.modify_r13(); S.modify_r14(); S.modify_r15(); S.modify_r16();
+S.modify_r17(); S.modify_r18();
+end;
+
+'Q:
+  mul r6 r6;
+  neg r25;
+  add r0 r25;
+  adc r1 r17;
+  movw r10 r0;
+
+  mul r7 r7;
+  movw r12 r0;
+
+  mul r8 r8;
+  movw r14 r0;
+
+  mul r9 r9;
+
+  add r26 r10;
+  std rZ 24 r26;
+  adc r27 r11;
+  std rZ 25 r27;
+  adc r19 r12;
+  std rZ 26 r19;
+  adc r20 r13;
+  std rZ 27 r20;
+  adc r21 r14;
+  std rZ 28 r21;
+  adc r22 r15;
+  std rZ 29 r22;
+  adc r23 r0;
+  std rZ 30 r23;
+  adc r24 r1;
+  std rZ 31 r24;
+
+assert { uint 2 reg 26 + pow2 16*uint 6 reg 19 = at(uint 2 reg 26 + pow2 16*uint 6 reg 19 + reg[6]*reg[6] + pow2 16*reg[7]*reg[7] + pow2 32*reg[8]*reg[8] + pow2 48*reg[9]*reg[9] + (if reg[25] = 0 then 0 else 256 - reg[25]))'Q };
+
+S.modify_r0(); S.modify_r1();
+S.modify_r25(); S.modify_r26(); S.modify_r27();
+S.modify_r19(); S.modify_r20(); S.modify_r21(); S.modify_r22(); S.modify_r23(); S.modify_r24();
+S.modify_r10(); S.modify_r11(); S.modify_r12(); S.modify_r13(); S.modify_r14(); S.modify_r15(); S.modify_r16();
+S.modify_r17(); S.modify_r18();
+end;
+
+ (* compute inputs to middle diamond *)
+
+  ldd r10 rY 0;
+  ldd r11 rY 1;
+  ldd r12 rY 2;
+  ldd r13 rY 3;
+  ldd r14 rY 4;
+  ldd r15 rY 5;
+  ldd r16 rY 6;
+  ldd r17 rY 7;
+'L2:
+
+S.init();
+abstract ensures { S.synchronized S.shadow reg }
+ensures { uint 8 reg 2 = old(abs(uint 8 reg 2 - uint 8 reg 10)) }
+ensures { reg[26] = reg[27] = 0 }
+
+  sub r2 r10;
+  sbc r3 r11;
+  sbc r4 r12;
+  sbc r5 r13;
+  sbc r6 r14;
+  sbc r7 r15;
+  sbc r8 r16;
+  sbc r9 r17;
+
+  clr r27;
+  sbc r26 r26;
+  eor r2 r26;
+  eor r3 r26;
+  eor r4 r26;
+  eor r5 r26;
+  eor r6 r26;
+  eor r7 r26;
+  eor r8 r26;
+  eor r9 r26;
+
+  neg r26;
+  add r2 r26;
+  adc r3 r27;
+  adc r4 r27;
+  adc r5 r27;
+  adc r6 r27;
+  adc r7 r27;
+  adc r8 r27;
+  adc r9 r27;
+
+  clr r26;
+S.modify_r2(); S.modify_r3(); S.modify_r4(); S.modify_r5(); S.modify_r6(); S.modify_r7(); S.modify_r8(); S.modify_r9();
+S.modify_r26(); S.modify_r27();
+end;
+
+ (* ============ middle mult ============ *)
+
+abstract ensures { S.synchronized S.shadow reg }
+ensures { reg[28] + pow2 8*uint 15 reg 10 = old(uint 8 reg 2 * uint 8 reg 2) }
+
+abstract ensures { S.synchronized S.shadow reg }
+ensures { reg[28] + pow2 8*uint 7 reg 10 + pow2 64*uint 8 reg 17 + pow2 64*(if reg[25]=0 then 0 else 256-reg[25]) = 
+          old(uint 8 reg 2*uint 8 reg 2 - pow2 64*reg[6]*reg[6] - pow2 80*reg[7]*reg[7] - pow2 96*reg[8]*reg[8] - pow2 112*reg[9]*reg[9]) }
+  mul r2 r3;
+  movw r10 r0;
+
+  movw r12 r26;
+  mul r2 r4;
+  add r11 r0;
+  adc r12 r1;
+
+
+  movw r14 r26;
+  mul r2 r5;
+  add r12 r0;
+  adc r13 r1;
+
+  mul r3 r4;
+  add r12 r0;
+  adc r13 r1;
+  adc r14 r26;
+
+
+  mul r2 r6;
+  add r13 r0;
+  adc r14 r1;
+
+  mul r3 r5;
+  add r13 r0;
+  adc r14 r1;
+  adc r15 r26;
+
+
+  movw r16 r26;
+  mul r2 r7;
+  add r14 r0;
+  adc r15 r1;
+  adc r16 r26;
+
+  mul r3 r6;
+  add r14 r0;
+  adc r15 r1;
+  adc r16 r26;
+
+  mul r4 r5;
+  add r14 r0;
+  adc r15 r1;
+  adc r16 r26;
+
+
+  mul r2 r8;
+  add r15 r0;
+  adc r16 r1;
+  adc r17 r26;
+
+  mul r3 r7;
+  add r15 r0;
+  adc r16 r1;
+  adc r17 r26;
+
+  mul r4 r6;
+  add r15 r0;
+  adc r16 r1;
+  adc r17 r26;
+
+  movw r18 r26;
+  mul r2 r9;
+  add r16 r0;
+  adc r17 r1;
+  adc r18 r26;
+
+  mul r3 r8;
+  add r16 r0;
+  adc r17 r1;
+  adc r18 r26;
+
+  mul r4 r7;
+  add r16 r0;
+  adc r17 r1;
+  adc r18 r26;
+
+  mul r5 r6;
+  add r16 r0;
+  adc r17 r1;
+  adc r18 r26;
+
+  rol r10;
+  rol r11;
+  rol r12;
+  rol r13;
+  rol r14;
+  rol r15;
+  rol r16;
+  sbc r25 r25; (* remember shift carry *)
+
+  mul r2 r2;
+  movw r28 r0;
+  mul r3 r3;
+  movw r20 r0;
+  mul r4 r4;
+  movw r22 r0;
+  mul r5 r5;
+
+  add r10 r29;
+  adc r11 r20;
+  adc r12 r21;
+  adc r13 r22;
+  adc r14 r23;
+  adc r15 r0;
+  adc r16 r1;
+
+  sbc r25 r26; (* merge carry with previous carry *)
+
+  mul r3 r9;
+  add r17 r0;
+  adc r18 r1;
+  adc r19 r26;
+
+  mul r4 r8;
+  add r17 r0;
+  adc r18 r1;
+  adc r19 r26;
+
+  mul r5 r7;
+  add r17 r0;
+  adc r18 r1;
+  adc r19 r26;
+
+
+  movw r20 r26;
+  mul r4 r9;
+  add r18 r0;
+  adc r19 r1;
+  adc r20 r26;
+
+  mul r5 r8;
+  add r18 r0;
+  adc r19 r1;
+  adc r20 r26;
+
+  mul r6 r7;
+  add r18 r0;
+  adc r19 r1;
+  adc r20 r26;
+
+
+  mul r5 r9;
+  add r19 r0;
+  adc r20 r1;
+  adc r21 r26;
+
+  mul r6 r8;
+  add r19 r0;
+  adc r20 r1;
+  adc r21 r26;
+
+  movw r22 r26;
+  mul r6 r9;
+  add r20 r0;
+  adc r21 r1;
+  adc r22 r26;
+
+  mul r7 r8;
+  add r20 r0;
+  adc r21 r1;
+  adc r22 r26;
+
+
+  mul r7 r9;
+  add r21 r0;
+  adc r22 r1;
+  adc r23 r26;
+
+  clr r24;
+  mul r8 r9;
+  add r22 r0;
+  adc r23 r1;
+  adc r24 r26;
+
+  rol r17;
+  rol r18;
+  rol r19;
+  rol r20;
+  rol r21;
+  rol r22;
+  rol r23;
+  rol r24;
+
+S.modify_r0(); S.modify_r1();
+S.modify_r28(); S.modify_r10(); S.modify_r11(); S.modify_r12();
+S.modify_r13(); S.modify_r14(); S.modify_r15(); S.modify_r16();
+S.modify_r17(); S.modify_r18(); S.modify_r19(); S.modify_r20();
+S.modify_r21(); S.modify_r22(); S.modify_r23(); S.modify_r24();
+S.modify_r25();
+S.modify_r29();
+end;
+
+'Q:
+  mul r6 r6;
+  neg r25;
+  add r0 r25;
+  adc r1 r26;
+  movw r2 r0;
+
+  mul r7 r7;
+  movw r4 r0;
+
+  mul r8 r8;
+  movw r6 r0;
+
+  mul r9 r9;
+
+  add r17 r2;
+  adc r18 r3;
+  adc r19 r4;
+  adc r20 r5;
+  adc r21 r6;
+  adc r22 r7;
+  adc r23 r0;
+  adc r24 r1;
+
+assert { uint 8 reg 17 = at(uint 8 reg 17 + reg[6]*reg[6] + pow2 16*reg[7]*reg[7] + pow2 32*reg[8]*reg[8] + pow2 48*reg[9]*reg[9] + (if reg[25] = 0 then 0 else 256 - reg[25]))'Q };
+
+S.modify_r0(); S.modify_r1();
+S.modify_r2(); S.modify_r3();
+S.modify_r4(); S.modify_r5();
+S.modify_r6(); S.modify_r7();
+S.modify_r28(); S.modify_r10(); S.modify_r11(); S.modify_r12();
+S.modify_r13(); S.modify_r14(); S.modify_r15(); S.modify_r16();
+S.modify_r17(); S.modify_r18(); S.modify_r19(); S.modify_r20();
+S.modify_r21(); S.modify_r22(); S.modify_r23(); S.modify_r24();
+S.modify_r25();
+S.modify_r29();
+end;
+
+ (* m in r28 r10 ... r24 *)
+'B:
+abstract
+ensures { S.synchronized S.shadow reg }
+ensures { uint 32 mem (uint 2 reg rZ) + ?cf*pow2 256 =
+          (pow2 64+1)*old(uint 8 mem (uint 2 reg rZ) + pow2 64*uint 16 mem (uint 2 reg rZ+16))
+          - pow2 64*old(reg[28]+pow2 8*uint 15 reg 10)
+          + if reg[26]=0xff then pow2 256 else 0 }
+ensures { forall i. mem[i] <> (old mem)[i] -> uint 2 reg rZ+8 <= i < uint 2 reg rZ+32 }
+ensures { eq8 reg 2 mem (uint 2 reg rZ+16) /\ eq8 reg 10 mem (uint 2 reg rZ+24) }
+
+  ldd r2 rZ 16;
+  ldd r3 rZ 17;
+  ldd r4 rZ 18;
+  ldd r5 rZ 19;
+  ldd r6 rZ 20;
+  ldd r7 rZ 21;
+  ldd r8 rZ 22;
+  ldd r9 rZ 23;
+
+  sub r28 r2;
+  sbc r10 r3;
+  sbc r11 r4;
+  sbc r12 r5;
+  sbc r13 r6;
+  sbc r14 r7;
+  sbc r15 r8;
+  sbc r16 r9;
+  sbc r0 r0; (* remember borrow needs to be *added* to r2 later *)
+
+  ldd r29 rZ 0;
+  sub r29 r28;
+  std rZ 8 r29;
+  ldd r29 rZ 1;
+  sbc r29 r10;
+  std rZ 9 r29;
+  ldd r29 rZ 2;
+  sbc r29 r11;
+  std rZ 10 r29;
+  ldd r29 rZ 3;
+  sbc r29 r12;
+  std rZ 11 r29;
+  ldd r29 rZ 4;
+  sbc r29 r13;
+  std rZ 12 r29;
+  ldd r29 rZ 5;
+  sbc r29 r14;
+  std rZ 13 r29;
+  ldd r29 rZ 6;
+  sbc r29 r15;
+  std rZ 14 r29;
+  ldd r29 rZ 7;
+  sbc r29 r16;
+  std rZ 15 r29;
+
+  sbc r2 r17;
+  sbc r3 r18;
+  sbc r4 r19;
+  sbc r5 r20;
+  sbc r6 r21;
+  sbc r7 r22;
+  sbc r8 r23;
+  sbc r9 r24;
+
+ (* temp result in r28 r10 r11 ...r16 r2 ... r9 *)
+
+  sbc r26 r26; (* remember borrow *)
+
+  ldd r10 rZ 24;
+  ldd r11 rZ 25;
+  ldd r12 rZ 26;
+  ldd r13 rZ 27;
+  ldd r14 rZ 28;
+  ldd r15 rZ 29;
+  ldd r16 rZ 30;
+  ldd r17 rZ 31;
+
+  add r0 r0; (* recover carry *)
+
+  adc r2 r10;
+  adc r3 r11;
+  adc r4 r12;
+  adc r5 r13;
+  adc r6 r14;
+  adc r7 r15;
+  adc r8 r16;
+  adc r9 r17;
+
+  std rZ 16 r2;
+  std rZ 17 r3;
+  std rZ 18 r4;
+  std rZ 19 r5;
+  std rZ 20 r6;
+  std rZ 21 r7;
+  std rZ 22 r8;
+  std rZ 23 r9;
+
+  clr r18;
+  adc r26 r18;
+  mov r27 r26;
+  asr r27;
+
+  add r10 r26;
+  adc r11 r27;
+  adc r12 r27;
+  adc r13 r27;
+  adc r14 r27;
+  adc r15 r27;
+  adc r16 r27;
+  adc r17 r27;
+
+  std rZ 24 r10;
+  std rZ 25 r11;
+  std rZ 26 r12;
+  std rZ 27 r13;
+  std rZ 28 r14;
+  std rZ 29 r15;
+  std rZ 30 r16;
+  std rZ 31 r17;
+
+S.modify_r2(); S.modify_r3(); S.modify_r4(); S.modify_r5(); S.modify_r6(); S.modify_r7(); S.modify_r8(); S.modify_r9();
+S.modify_r28(); S.modify_r10(); S.modify_r11(); S.modify_r12(); S.modify_r13(); S.modify_r14(); S.modify_r15(); S.modify_r16(); S.modify_r17();
+S.modify_r0();
+S.modify_r26(); S.modify_r27(); S.modify_r29();
+S.modify_r18();
+end;
+
+  assert { let xL = at(uint 8 mem (uint 2 reg rY))'S in
+           let xH = at(uint 8 mem (uint 2 reg rY+8))'S in
+           at(uint 8 mem (uint 2 reg rZ) + pow2 64*uint 16 mem (uint 2 reg rZ+16))'B = xL*xL + pow2 64*xH*xH
+       };
+
+  assert { let xL = at(uint 8 mem (uint 2 reg rY))'S in
+           let xH = at(uint 8 mem (uint 2 reg rY+8))'S in
+           at(reg[28]+pow2 8*uint 15 reg 10)'B = abs(xH-xL)*abs(xH-xL) = (xH-xL)*(xH-xL)
+           by (at(uint 8 reg 2)'L2 = xH)
+           /\ (at(uint 8 reg 10)'L2 = xL by eq 8 (at mem 'L2) (at mem 'S) (at (uint 2 reg rY)'S))
+       };
+
+  abstract ensures { 0 <= uint 32 mem (uint 2 reg rZ) < pow2 256 }
+    uint_bound mem (!(S.shadow.S.r30) + !(S.shadow.S.r31)*pow2 8) 32;
+  end;
+  assert { 0 <= at(uint 16 mem (uint 2 reg rY))'S <= pow2 128-1 };
+  assert { 0 <= at(uint 16 mem (uint 2 reg rY)*uint 16 mem (uint 2 reg rY))'S <= (pow2 128-1)*(pow2 128-1) };
+
+  assert { uint 32 mem (uint 2 reg rZ) =
+           at(uint 16 mem (uint 2 reg rY)*uint 16 mem (uint 2 reg rY))'S };
+
+  pop r29;
+  pop r28;
+  ()
+
+end

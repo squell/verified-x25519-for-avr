@@ -1,0 +1,1612 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE why3session PUBLIC "-//Why3//proof session v5//EN"
+"http://why3.lri.fr/why3session.dtd">
+<why3session shape_version="4">
+<prover id="0" name="CVC4" version="1.6" alternative="noBV" timelimit="30" steplimit="0" memlimit="8000"/>
+<prover id="1" name="CVC3" version="2.4.1" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="2" name="CVC4" version="1.6" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="4" name="Z3" version="4.6.0" alternative="noBV" timelimit="13" steplimit="0" memlimit="8000"/>
+<prover id="5" name="Eprover" version="2.0" timelimit="13" steplimit="0" memlimit="8000"/>
+<file name="../fe25519.mlw" expanded="true">
+<theory name="Fe25519" sum="4123296fda85b3f7c081bce2b779bc3c" expanded="true">
+ <goal name="p_eq" expl="">
+ <transf name="compute_in_goal">
+  <goal name="p_eq.1" expl="">
+  <proof prover="0" timelimit="13"><result status="valid" time="1.18"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter uint" expl="VC for uint">
+ <proof prover="1"><result status="valid" time="0.04"/></proof>
+ </goal>
+ <goal name="WP_parameter fe25519_setzero" expl="VC for fe25519_setzero">
+ <transf name="compute_in_goal">
+  <goal name="WP_parameter fe25519_setzero.1" expl="VC for fe25519_setzero">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_setzero.1.1" expl="loop invariant init">
+   <proof prover="1"><result status="valid" time="0.04"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_setzero.1.2" expl="loop invariant init">
+   <proof prover="1"><result status="valid" time="0.04"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_setzero.1.3" expl="type invariant">
+   <proof prover="1"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_setzero.1.4" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_setzero.1.5" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_setzero.1.6" expl="type invariant">
+   <proof prover="1"><result status="valid" time="0.04"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_setzero.1.7" expl="postcondition">
+   <proof prover="1"><result status="valid" time="0.09"/></proof>
+   </goal>
+  </transf>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_setone" expl="VC for fe25519_setone">
+ <transf name="compute_in_goal">
+  <goal name="WP_parameter fe25519_setone.1" expl="VC for fe25519_setone">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_setone.1.1" expl="loop invariant init">
+   <proof prover="1"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_setone.1.2" expl="loop invariant init">
+   <proof prover="1"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_setone.1.3" expl="type invariant">
+   <proof prover="1"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_setone.1.4" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_setone.1.5" expl="loop invariant preservation">
+   <proof prover="1"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_setone.1.6" expl="type invariant">
+   <proof prover="1"><result status="valid" time="0.04"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_setone.1.7" expl="postcondition">
+   <proof prover="1"><result status="valid" time="0.08"/></proof>
+   </goal>
+  </transf>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_neg" expl="VC for fe25519_neg">
+ <transf name="compute_in_goal">
+  <goal name="WP_parameter fe25519_neg.1" expl="VC for fe25519_neg">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_neg.1.1" expl="type invariant">
+   <proof prover="1"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_neg.1.2" expl="type invariant">
+   <proof prover="1"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_neg.1.3" expl="postcondition">
+   <proof prover="1"><result status="valid" time="0.15"/></proof>
+   </goal>
+  </transf>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_cmov" expl="VC for fe25519_cmov">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter fe25519_cmov.1" expl="postcondition">
+  <proof prover="1" timelimit="30"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_cmov.2" expl="loop invariant init">
+  <proof prover="1" timelimit="30"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_cmov.3" expl="loop invariant init">
+  <proof prover="1" timelimit="30"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_cmov.4" expl="type invariant">
+  <proof prover="1" timelimit="30"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_cmov.5" expl="loop invariant preservation">
+  <transf name="eliminate_if">
+   <goal name="WP_parameter fe25519_cmov.5.1" expl="loop invariant preservation">
+   <transf name="split_goal_wp">
+    <goal name="WP_parameter fe25519_cmov.5.1.1" expl="loop invariant preservation">
+    <proof prover="2" timelimit="130"><result status="valid" time="12.94"/></proof>
+    </goal>
+    <goal name="WP_parameter fe25519_cmov.5.1.2" expl="loop invariant preservation">
+    <proof prover="2" timelimit="130"><result status="valid" time="7.97"/></proof>
+    </goal>
+   </transf>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_cmov.6" expl="loop invariant preservation">
+  <transf name="eliminate_if">
+   <goal name="WP_parameter fe25519_cmov.6.1" expl="loop invariant preservation">
+   <transf name="split_goal_wp">
+    <goal name="WP_parameter fe25519_cmov.6.1.1" expl="loop invariant preservation">
+    <proof prover="2" timelimit="30"><result status="valid" time="0.09"/></proof>
+    </goal>
+   </transf>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_cmov.7" expl="loop invariant preservation">
+  <proof prover="1" timelimit="30"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_cmov.8" expl="type invariant">
+  <proof prover="1" timelimit="30"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_cmov.9" expl="postcondition">
+  <transf name="eliminate_if">
+   <goal name="WP_parameter fe25519_cmov.9.1" expl="VC for fe25519_cmov">
+   <proof prover="0"><result status="valid" time="15.09"/></proof>
+   </goal>
+  </transf>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_freeze" expl="VC for fe25519_freeze">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter fe25519_freeze.1" expl="assertion">
+  <proof prover="1"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.2" expl="assertion">
+  <proof prover="1"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.3" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter fe25519_freeze.3.1" expl="assertion">
+   <proof prover="0" timelimit="13"><result status="valid" time="1.12"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.4" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.5" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.6" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.7" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.8" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.9" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.14"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.10" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.15"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.11" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.11"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.12" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.13" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.14" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.16"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.15" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.33"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze.16" expl="postcondition">
+  <proof prover="1"><result status="valid" time="0.38"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_freeze_opt" expl="VC for fe25519_freeze_opt">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter fe25519_freeze_opt.1" expl="assertion">
+  <proof prover="1"><result status="valid" time="1.59"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze_opt.2" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter fe25519_freeze_opt.2.1" expl="assertion">
+   <proof prover="0" timelimit="13"><result status="valid" time="1.61"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze_opt.3" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze_opt.4" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze_opt.5" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze_opt.6" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze_opt.7" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.09"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze_opt.8" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.14"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_freeze_opt.9" expl="postcondition">
+  <proof prover="1"><result status="valid" time="0.92"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter __fe25519_assign" expl="VC for __fe25519_assign">
+ <transf name="compute_in_goal">
+  <goal name="WP_parameter __fe25519_assign.1" expl="VC for __fe25519_assign">
+  <proof prover="1"><result status="valid" time="0.57"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_unpack" expl="VC for fe25519_unpack">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter fe25519_unpack.1" expl="precondition">
+  <proof prover="2"><result status="valid" time="0.03"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.2" expl="assertion">
+  <proof prover="2"><result status="valid" time="0.03"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.3" expl="assertion">
+  <proof prover="2"><result status="valid" time="0.03"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.4" expl="assertion">
+  <proof prover="1"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.5" expl="assertion">
+  <proof prover="1"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.6" expl="postcondition">
+  <proof prover="2"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.7" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.8" expl="assertion">
+  <proof prover="1"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.9" expl="assertion">
+  <proof prover="1"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.10" expl="postcondition">
+  <proof prover="1"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.11" expl="loop invariant init">
+  <proof prover="2"><result status="valid" time="0.08"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.12" expl="loop invariant init">
+  <proof prover="2"><result status="valid" time="0.02"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.13" expl="type invariant">
+  <proof prover="2"><result status="valid" time="0.09"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.14" expl="precondition">
+  <proof prover="2"><result status="valid" time="0.08"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.15" expl="loop invariant preservation">
+  <proof prover="2"><result status="valid" time="0.07"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.16" expl="loop invariant preservation">
+  <proof prover="2"><result status="valid" time="0.07"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.17" expl="precondition">
+  <proof prover="2"><result status="valid" time="0.03"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.18" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter fe25519_unpack.18.1" expl="assertion">
+   <transf name="split_goal_wp">
+    <goal name="WP_parameter fe25519_unpack.18.1.1" expl="assertion">
+    <proof prover="1"><result status="valid" time="0.10"/></proof>
+    </goal>
+    <goal name="WP_parameter fe25519_unpack.18.1.2" expl="assertion">
+    <proof prover="1"><result status="valid" time="4.40"/></proof>
+    </goal>
+   </transf>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.19" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter fe25519_unpack.19.1" expl="assertion">
+   <transf name="split_goal_wp">
+    <goal name="WP_parameter fe25519_unpack.19.1.1" expl="assertion">
+    <proof prover="1"><result status="valid" time="0.09"/></proof>
+    </goal>
+    <goal name="WP_parameter fe25519_unpack.19.1.2" expl="assertion">
+    <proof prover="1"><result status="valid" time="3.58"/></proof>
+    </goal>
+   </transf>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.20" expl="type invariant">
+  <proof prover="2"><result status="valid" time="0.09"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.21" expl="assertion">
+  <proof prover="1"><result status="valid" time="6.24"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.22" expl="assertion">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter fe25519_unpack.22.1" expl="assertion">
+   <proof prover="2"><result status="valid" time="0.09"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.23" expl="postcondition">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter fe25519_unpack.23.1" expl="postcondition">
+   <proof prover="1"><result status="valid" time="3.45"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.24" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.25" expl="assertion">
+  <proof prover="2"><result status="valid" time="0.11"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.26" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_unpack.26.1" expl="VC for fe25519_unpack">
+   <proof prover="0" timelimit="13"><result status="valid" time="5.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_unpack.26.2" expl="VC for fe25519_unpack">
+   <proof prover="5"><result status="valid" time="0.03"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_unpack.27" expl="postcondition">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter fe25519_unpack.27.1" expl="postcondition">
+   <proof prover="1"><result status="valid" time="16.78"/></proof>
+   </goal>
+  </transf>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_pack" expl="VC for fe25519_pack">
+ <transf name="compute_in_goal">
+  <goal name="WP_parameter fe25519_pack.1" expl="VC for fe25519_pack">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_pack.1.1" expl="type invariant">
+   <proof prover="1"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_pack.1.2" expl="type invariant">
+   <proof prover="1"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_pack.1.3" expl="loop invariant init">
+   <proof prover="1"><result status="valid" time="0.15"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_pack.1.4" expl="loop invariant init">
+   <proof prover="1"><result status="valid" time="0.14"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_pack.1.5" expl="type invariant">
+   <proof prover="1"><result status="valid" time="0.14"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_pack.1.6" expl="type invariant">
+   <proof prover="1"><result status="valid" time="0.14"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_pack.1.7" expl="precondition">
+   <proof prover="1"><result status="valid" time="0.15"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_pack.1.8" expl="loop invariant preservation">
+   <proof prover="0" timelimit="13"><result status="valid" time="0.16"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_pack.1.9" expl="loop invariant preservation">
+   <proof prover="0" timelimit="13"><result status="valid" time="0.15"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_pack.1.10" expl="type invariant">
+   <proof prover="1"><result status="valid" time="0.16"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_pack.1.11" expl="postcondition">
+   <proof prover="1"><result status="valid" time="0.26"/></proof>
+   </goal>
+  </transf>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_pack_opt" expl="VC for fe25519_pack_opt">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter fe25519_pack_opt.1" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_pack_opt.2" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_pack_opt.3" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.15"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_pack_opt.4" expl="postcondition">
+  <proof prover="1"><result status="valid" time="0.09"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_pack_opt.5" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_pack_opt.6" expl="loop invariant init">
+  <proof prover="1"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_pack_opt.7" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_pack_opt.8" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_pack_opt.9" expl="precondition">
+  <proof prover="1"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_pack_opt.10" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.23"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_pack_opt.11" expl="loop invariant preservation">
+  <proof prover="1"><result status="valid" time="0.22"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_pack_opt.12" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.20"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_pack_opt.13" expl="postcondition">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter fe25519_pack_opt.13.1" expl="postcondition">
+   <proof prover="1"><result status="valid" time="0.22"/></proof>
+   </goal>
+  </transf>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_mul" expl="VC for fe25519_mul">
+ <proof prover="1" timelimit="130"><result status="valid" time="0.20"/></proof>
+ </goal>
+ <goal name="WP_parameter fe25519_mul121666" expl="VC for fe25519_mul121666">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter fe25519_mul121666.1" expl="type invariant">
+  <proof prover="1" timelimit="130"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_mul121666.2" expl="type invariant">
+  <proof prover="1" timelimit="130"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_mul121666.3" expl="postcondition">
+  <transf name="compute_in_goal">
+   <goal name="WP_parameter fe25519_mul121666.3.1" expl="postcondition">
+   <proof prover="1" timelimit="130"><result status="valid" time="0.47"/></proof>
+   </goal>
+  </transf>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_square" expl="VC for fe25519_square">
+ <proof prover="1" timelimit="130"><result status="valid" time="0.14"/></proof>
+ </goal>
+</theory>
+<theory name="Fe25519_invert" sum="1a8b9eb36e6367120703496bdf77012b" expanded="true">
+ <goal name="WP_parameter fe25519_mul_rx" expl="VC for fe25519_mul_rx">
+ <proof prover="1"><result status="valid" time="0.20"/></proof>
+ </goal>
+ <goal name="WP_parameter fe25519_mul_ry" expl="VC for fe25519_mul_ry">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter fe25519_mul_ry.1" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_mul_ry.2" expl="type invariant">
+  <proof prover="1"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_mul_ry.3" expl="postcondition">
+  <proof prover="1"><result status="valid" time="0.24"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_square_rx" expl="VC for fe25519_square_rx">
+ <proof prover="1"><result status="valid" time="0.14"/></proof>
+ </goal>
+ <goal name="congruence_mul" expl="">
+ <proof prover="1"><result status="valid" time="0.11"/></proof>
+ </goal>
+ <goal name="WP_parameter fe25519_square&apos;" expl="VC for fe25519_square&apos;">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter fe25519_square&apos;.1" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_square&apos;.1.1" expl="VC for fe25519_square&apos;">
+   <proof prover="5"><result status="valid" time="7.36"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_square&apos;.1.2" expl="VC for fe25519_square&apos;">
+   <proof prover="5"><result status="valid" time="0.04"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_square&apos;.2" expl="postcondition">
+  <proof prover="5"><result status="valid" time="0.76"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_square&apos;.3" expl="postcondition">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.03"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_mul&apos;" expl="VC for fe25519_mul&apos;">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter fe25519_mul&apos;.1" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_mul&apos;.1.1" expl="VC for fe25519_mul&apos;">
+   <proof prover="5"><result status="valid" time="0.02"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_mul&apos;.1.2" expl="VC for fe25519_mul&apos;">
+   <proof prover="5"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_mul&apos;.1.3" expl="VC for fe25519_mul&apos;">
+   <proof prover="5"><result status="valid" time="3.92"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_mul&apos;.2" expl="postcondition">
+  <proof prover="5"><result status="valid" time="0.61"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_mul&apos;.3" expl="postcondition">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.04"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_mul_ry&apos;" expl="VC for fe25519_mul_ry&apos;">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter fe25519_mul_ry&apos;.1" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_mul_ry&apos;.1.1" expl="VC for fe25519_mul_ry&apos;">
+   <proof prover="5"><result status="valid" time="0.02"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_mul_ry&apos;.1.2" expl="VC for fe25519_mul_ry&apos;">
+   <proof prover="5"><result status="valid" time="0.05"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_mul_ry&apos;.1.3" expl="VC for fe25519_mul_ry&apos;">
+   <proof prover="5"><result status="valid" time="3.26"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_mul_ry&apos;.2" expl="postcondition">
+  <proof prover="1"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_mul_ry&apos;.3" expl="postcondition">
+  <proof prover="1"><result status="valid" time="0.15"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter fe25519_invert_r" expl="VC for fe25519_invert_r">
+ <transf name="split_goal_wp">
+  <goal name="WP_parameter fe25519_invert_r.1" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.2" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.08"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.3" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.17"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.4" expl="type invariant">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.15"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.5" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.6" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.16"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.7" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.16"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.8" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.18"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.9" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.20"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.10" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.18"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.11" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.19"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.12" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.13" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.13"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.14" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.20"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.15" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.16" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.22"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.17" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.18" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.22"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.19" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.23"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.20" expl="precondition">
+  <proof prover="4" timelimit="30"><result status="valid" time="0.89"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.21" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.27"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.22" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.27"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.23" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.28"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.24" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.25" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.28"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.26" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.38"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.27" expl="precondition">
+  <proof prover="0"><result status="valid" time="5.96"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.28" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.30"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.29" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.24"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.30" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.33"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.31" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.33"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.32" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.33"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.33" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.50"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.34" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.34"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.35" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.34"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.36" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.33"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.37" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.44"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.38" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.35"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.39" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.38"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.40" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.31"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.41" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.42"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.42" expl="precondition">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.41"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.43" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.44" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.46"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.45" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.40"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.46" expl="precondition">
+  <proof prover="4" timelimit="30"><result status="valid" time="21.29"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.47" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.48"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.48" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.47"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.49" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.68"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.50" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.51" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.52" expl="VC for fe25519_invert_r">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.53" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.75"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.54" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.61"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.55" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.63"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.56" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.65"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.57" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.65"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.58" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.59" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.68"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.60" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.68"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.61" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.80"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.62" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.62.1" expl="assertion">
+   <proof prover="4" timelimit="130"><result status="valid" time="4.78"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.62.2" expl="assertion">
+   <proof prover="0" timelimit="130"><result status="valid" time="0.27"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.63" expl="loop invariant preservation">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.63.1" expl="loop invariant preservation">
+   <proof prover="0"><result status="valid" time="0.63"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.63.2" expl="loop invariant preservation">
+   <proof prover="4" timelimit="30"><result status="valid" time="0.18"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.64" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="0.54"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.65" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="0.54"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.66" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.47"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.67" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.50"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.68" expl="VC for fe25519_invert_r">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.69" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.53"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.70" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.54"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.71" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.50"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.72" expl="precondition">
+  <proof prover="4"><result status="valid" time="0.02"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.73" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.74" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.44"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.75" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.57"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.76" expl="precondition">
+  <proof prover="0"><result status="valid" time="14.42"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.77" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.55"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.78" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.59"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.79" expl="precondition">
+  <proof prover="0" timelimit="60"><result status="valid" time="0.64"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.80" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.81" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.82" expl="VC for fe25519_invert_r">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.82.1" expl="VC for fe25519_invert_r">
+   <proof prover="4"><result status="valid" time="0.03"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.83" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.73"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.84" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.66"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.85" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.59"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.86" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.61"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.87" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.60"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.88" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.89" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.62"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.90" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.58"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.91" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.73"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.92" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.92.1" expl="assertion">
+   <proof prover="4" timelimit="130"><result status="valid" time="5.26"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.92.2" expl="assertion">
+   <proof prover="0" timelimit="130"><result status="valid" time="0.25"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.93" expl="loop invariant preservation">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.93.1" expl="loop invariant preservation">
+   <proof prover="0"><result status="valid" time="0.72"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.93.2" expl="loop invariant preservation">
+   <proof prover="4" timelimit="30"><result status="valid" time="0.18"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.94" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="0.64"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.95" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="0.61"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.96" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.62"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.97" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.58"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.98" expl="VC for fe25519_invert_r">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.99" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.62"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.100" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.65"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.101" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.75"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.102" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.103" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.04"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.104" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.59"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.105" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.66"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.106" expl="precondition">
+  <proof prover="4" timelimit="30"><result status="valid" time="4.35"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.107" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.64"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.108" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.68"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.109" expl="precondition">
+  <proof prover="4"><result status="valid" time="4.85"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.110" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.111" expl="type invariant">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.112" expl="VC for fe25519_invert_r">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.113" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.78"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.114" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.70"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.115" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.75"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.116" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.73"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.117" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.86"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.118" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.119" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.92"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.120" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.75"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.121" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.87"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.122" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.122.1" expl="assertion">
+   <proof prover="4" timelimit="30"><result status="valid" time="13.01"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.122.2" expl="assertion">
+   <proof prover="0" timelimit="13"><result status="valid" time="0.31"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.123" expl="loop invariant preservation">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.123.1" expl="loop invariant preservation">
+   <proof prover="0"><result status="valid" time="1.12"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.123.2" expl="loop invariant preservation">
+   <proof prover="4"><result status="valid" time="0.18"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.124" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="0.78"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.125" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="0.96"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.126" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.88"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.127" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.75"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.128" expl="VC for fe25519_invert_r">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.129" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.72"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.130" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.68"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.131" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.74"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.132" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.133" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.134" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.77"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.135" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.78"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.136" expl="precondition">
+  <proof prover="0" timelimit="60"><result status="valid" time="21.35"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.137" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.90"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.138" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.86"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.139" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.92"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.140" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.141" expl="type invariant">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.142" expl="VC for fe25519_invert_r">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.143" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="1.14"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.144" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.75"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.145" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.92"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.146" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.98"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.147" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.91"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.148" expl="precondition">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.149" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.98"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.150" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.96"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.151" expl="precondition">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.98"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.152" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.152.1" expl="assertion">
+   <proof prover="4" timelimit="30"><result status="valid" time="21.66"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.152.2" expl="assertion">
+   <proof prover="0" timelimit="13"><result status="valid" time="0.31"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.153" expl="loop invariant preservation">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.153.1" expl="loop invariant preservation">
+   <proof prover="0"><result status="valid" time="1.02"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.153.2" expl="loop invariant preservation">
+   <proof prover="4" timelimit="30"><result status="valid" time="0.21"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.154" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="0.97"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.155" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="1.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.156" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.90"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.157" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.85"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.158" expl="VC for fe25519_invert_r">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.159" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.90"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.160" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.00"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.161" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.98"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.162" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.163" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.164" expl="assertion">
+  <proof prover="4"><result status="valid" time="0.27"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.165" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.84"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.166" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.09"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.167" expl="precondition">
+  <proof prover="4" timelimit="130"><result status="valid" time="0.20"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.168" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.168.1" expl="assertion">
+   <proof prover="4"><result status="valid" time="0.17"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.168.2" expl="assertion">
+   <proof prover="4" timelimit="30"><result status="valid" time="0.22"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.168.3" expl="assertion">
+   <proof prover="0" timelimit="13"><result status="valid" time="0.23"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.169" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.87"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.170" expl="type invariant">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.95"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.171" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.16"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.172" expl="assertion">
+  <proof prover="0" timelimit="13"><result status="valid" time="1.44"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.173" expl="type invariant">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.174" expl="type invariant">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.175" expl="VC for fe25519_invert_r">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.176" expl="loop invariant init">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.176.1" expl="loop invariant init">
+   <proof prover="0" timelimit="13"><result status="valid" time="0.94"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.176.2" expl="loop invariant init">
+   <proof prover="4"><result status="valid" time="0.18"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.177" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.98"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.178" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="1.15"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.179" expl="type invariant">
+  <proof prover="0" timelimit="13"><result status="valid" time="1.01"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.180" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.97"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.181" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.182" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.14"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.183" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.00"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.184" expl="precondition">
+  <proof prover="0"><result status="valid" time="1.20"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.185" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.185.1" expl="assertion">
+   <proof prover="4" timelimit="300"><result status="valid" time="102.92"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.185.2" expl="assertion">
+   <proof prover="0" timelimit="13"><result status="valid" time="0.31"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.186" expl="loop invariant preservation">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.186.1" expl="loop invariant preservation">
+   <proof prover="0" timelimit="130"><result status="valid" time="38.37"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.186.2" expl="loop invariant preservation">
+   <proof prover="4" timelimit="30"><result status="valid" time="0.28"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.187" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="1.09"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.188" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="1.17"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.189" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.10"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.190" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.97"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.191" expl="VC for fe25519_invert_r">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.192" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.16"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.193" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.99"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.194" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.11"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.195" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.196" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.197" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.197.1" expl="VC for fe25519_invert_r">
+   <proof prover="4"><result status="valid" time="0.19"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.197.2" expl="VC for fe25519_invert_r">
+   <proof prover="4" timelimit="300"><result status="valid" time="0.21"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.197.3" expl="VC for fe25519_invert_r">
+   <proof prover="4" timelimit="300"><result status="valid" time="0.20"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.197.4" expl="VC for fe25519_invert_r">
+   <proof prover="4" timelimit="300"><result status="valid" time="0.21"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.198" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.98"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.199" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.03"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.200" expl="precondition">
+  <proof prover="4" timelimit="130"><result status="valid" time="0.21"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.201" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.201.1" expl="assertion">
+   <proof prover="4"><result status="valid" time="0.20"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.201.2" expl="assertion">
+   <proof prover="4"><result status="valid" time="0.21"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.201.3" expl="assertion">
+   <proof prover="0" timelimit="13"><result status="valid" time="0.28"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.202" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.03"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.203" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.09"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.204" expl="precondition">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.26"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.205" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.205.1" expl="assertion">
+   <proof prover="4"><result status="valid" time="0.24"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.205.2" expl="assertion">
+   <proof prover="4" timelimit="300"><result status="valid" time="0.22"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.205.3" expl="assertion">
+   <proof prover="0" timelimit="13"><result status="valid" time="0.26"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.206" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.207" expl="type invariant">
+  <proof prover="0"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.208" expl="VC for fe25519_invert_r">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.209" expl="loop invariant init">
+  <proof prover="0" timelimit="130"><result status="valid" time="1.34"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.210" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="1.07"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.211" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.99"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.212" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.213" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.02"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.214" expl="precondition">
+  <proof prover="0" timelimit="300"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.215" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.30"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.216" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.13"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.217" expl="precondition">
+  <proof prover="0" timelimit="130"><result status="valid" time="38.70"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.218" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.218.1" expl="assertion">
+   <proof prover="4" timelimit="300"><result status="valid" time="118.03"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.218.2" expl="assertion">
+   <proof prover="0" timelimit="13"><result status="valid" time="0.37"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.219" expl="loop invariant preservation">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.219.1" expl="loop invariant preservation">
+   <proof prover="0" timelimit="130"><result status="valid" time="39.61"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.219.2" expl="loop invariant preservation">
+   <proof prover="4" timelimit="300"><result status="valid" time="0.29"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.220" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="1.35"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.221" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="1.14"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.222" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.223" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.20"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.224" expl="VC for fe25519_invert_r">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.06"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.225" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.17"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.226" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.227" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.15"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.228" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.16"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.229" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.05"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.230" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.230.1" expl="assertion">
+   <proof prover="4" timelimit="30"><result status="valid" time="0.22"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.231" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.30"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.232" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.15"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.233" expl="precondition">
+  <proof prover="4" timelimit="130"><result status="valid" time="0.22"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.234" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.234.1" expl="assertion">
+   <proof prover="4" timelimit="300"><result status="valid" time="0.26"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.234.2" expl="assertion">
+   <proof prover="4" timelimit="300"><result status="valid" time="0.23"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.234.3" expl="assertion">
+   <proof prover="0" timelimit="300"><result status="valid" time="0.29"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.235" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.42"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.236" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.38"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.237" expl="precondition">
+  <proof prover="4"><result status="valid" time="0.22"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.238" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.238.1" expl="assertion">
+   <proof prover="4" timelimit="130"><result status="valid" time="0.30"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.238.2" expl="assertion">
+   <proof prover="0" timelimit="300"><result status="valid" time="40.39"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.238.3" expl="assertion">
+   <proof prover="0"><result status="valid" time="0.29"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.239" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.39"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.240" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.31"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.241" expl="precondition">
+  <proof prover="4"><result status="valid" time="0.24"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.242" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.242.1" expl="assertion">
+   <proof prover="4"><result status="valid" time="0.31"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.242.2" expl="assertion">
+   <proof prover="0" timelimit="300"><result status="valid" time="1.57"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.242.3" expl="assertion">
+   <proof prover="0"><result status="valid" time="0.39"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.243" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.32"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.244" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.47"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.245" expl="precondition">
+  <proof prover="4"><result status="valid" time="0.24"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.246" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.246.1" expl="assertion">
+   <proof prover="0" timelimit="13"><result status="valid" time="1.47"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.246.2" expl="assertion">
+   <proof prover="0" timelimit="13"><result status="valid" time="1.86"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.246.3" expl="assertion">
+   <proof prover="0" timelimit="13"><result status="valid" time="0.32"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.247" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.51"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.248" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.38"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.249" expl="precondition">
+  <proof prover="4"><result status="valid" time="0.27"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.250" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.250.1" expl="assertion">
+   <proof prover="4" timelimit="130"><result status="valid" time="0.25"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.250.2" expl="assertion">
+   <proof prover="4" timelimit="300"><result status="valid" time="0.25"/></proof>
+   </goal>
+   <goal name="WP_parameter fe25519_invert_r.250.3" expl="assertion">
+   <proof prover="0"><result status="valid" time="0.29"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.251" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.37"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.252" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.35"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.253" expl="precondition">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.36"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.254" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.34"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.255" expl="assertion">
+  <proof prover="4" timelimit="130"><result status="valid" time="0.35"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.256" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.57"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.257" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.40"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.258" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.37"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.259" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.39"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.260" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.39"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.261" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.40"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.262" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.47"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.263" expl="type invariant">
+  <proof prover="0"><result status="valid" time="1.61"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.264" expl="VC for fe25519_invert_r">
+  <proof prover="0"><result status="valid" time="0.38"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.265" expl="precondition">
+  <proof prover="4" timelimit="30"><result status="valid" time="22.56"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.266" expl="precondition">
+  <proof prover="4" timelimit="130"><result status="valid" time="0.03"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.267" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.267.1" expl="assertion">
+   <proof prover="0"><result status="valid" time="0.17"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.268" expl="postcondition">
+  <proof prover="4"><result status="valid" time="3.40"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.269" expl="loop invariant init">
+  <proof prover="4"><result status="valid" time="0.10"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.270" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.270.1" expl="assertion">
+   <proof prover="5"><result status="valid" time="0.06"/></proof>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.271" expl="loop invariant preservation">
+  <proof prover="5"><result status="valid" time="0.73"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.272" expl="postcondition">
+  <proof prover="0" timelimit="13"><result status="valid" time="0.20"/></proof>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.273" expl="assertion">
+  <transf name="split_goal_wp">
+   <goal name="WP_parameter fe25519_invert_r.273.1" expl="assertion">
+   <transf name="compute_in_goal">
+    <goal name="WP_parameter fe25519_invert_r.273.1.1" expl="assertion">
+    <proof prover="4" timelimit="300"><result status="valid" time="1.65"/></proof>
+    </goal>
+   </transf>
+   </goal>
+  </transf>
+  </goal>
+  <goal name="WP_parameter fe25519_invert_r.274" expl="postcondition">
+  <proof prover="4"><result status="valid" time="0.02"/></proof>
+  </goal>
+ </transf>
+ </goal>
+</theory>
+</file>
+</why3session>

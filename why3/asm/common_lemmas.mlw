@@ -1,0 +1,79 @@
+module BV_asr_Lemmas
+
+use import bv.BV8
+use import int.Int
+use import bv.Pow2int
+use import int.EuclideanDivision
+
+lemma asr_0: eq (asr zeros 1) zeros
+lemma asr_1: eq (asr (of_int 1) 1) zeros
+lemma asr_f: eq (asr ones 1) ones
+
+lemma xor_0: forall w. 0 <= w < 256 -> t'int (bw_xor (of_int w) zeros) = w
+lemma xor_1: forall w. 0 <= w < 256 -> t'int (bw_xor (of_int w) ones) = 255 - w
+
+lemma or_0: forall w. bw_or zeros w = w
+
+lemma pow2_72: pow2 72 = 0x1000000000000000000
+lemma pow2_80: pow2 80 = 0x100000000000000000000
+lemma pow2_88: pow2 88 = 0x10000000000000000000000
+lemma pow2_96: pow2 96 = 0x1000000000000000000000000
+lemma pow2_104: pow2 104 = 0x100000000000000000000000000
+lemma pow2_112: pow2 112 = 0x10000000000000000000000000000
+lemma pow2_120: pow2 120 = 0x1000000000000000000000000000000
+lemma pow2_128: pow2 128 = 0x100000000000000000000000000000000
+lemma pow2_136: pow2 136 = 0x10000000000000000000000000000000000
+lemma pow2_144: pow2 144 = 0x1000000000000000000000000000000000000
+lemma pow2_152: pow2 152 = 0x100000000000000000000000000000000000000
+lemma pow2_160: pow2 160 = 0x10000000000000000000000000000000000000000
+lemma pow2_168: pow2 168 = 0x1000000000000000000000000000000000000000000
+lemma pow2_176: pow2 176 = 0x100000000000000000000000000000000000000000000
+lemma pow2_184: pow2 184 = 0x10000000000000000000000000000000000000000000000
+lemma pow2_192: pow2 192 = 0x1000000000000000000000000000000000000000000000000
+lemma pow2_200: pow2 200 = 0x100000000000000000000000000000000000000000000000000
+lemma pow2_208: pow2 208 = 0x10000000000000000000000000000000000000000000000000000
+lemma pow2_216: pow2 216 = 0x1000000000000000000000000000000000000000000000000000000
+lemma pow2_224: pow2 224 = 0x100000000000000000000000000000000000000000000000000000000
+lemma pow2_232: pow2 232 = 0x10000000000000000000000000000000000000000000000000000000000
+lemma pow2_240: pow2 240 = 0x1000000000000000000000000000000000000000000000000000000000000
+lemma pow2_248: pow2 248 = 0x100000000000000000000000000000000000000000000000000000000000000
+lemma pow2_256: pow2 256 = 0x10000000000000000000000000000000000000000000000000000000000000000
+
+end
+
+module AvrModelLemmas
+
+use import int.Int
+use import map.Map
+use import int.EuclideanDivision
+use import bv.Pow2int
+
+lemma register_file_invariant_strengthen:
+  forall m m': map int int. (forall i. 0 <= m[i] < 256) -> (forall i. 0 <= m'[i] < 256) -> (forall i j. 0 <= m[i]*m'[j] <= 255*255)
+
+lemma pow_split: forall k. k >= 0 -> pow2 (2*k) = pow2 k*pow2 k
+
+use import avrmodel.AVRint
+
+predicate saved_registers (reg reg': address_space) =
+  (reg[1]=0 -> reg'[1]=0) /\ 
+  reg'[2] = reg[2] /\
+  reg'[3] = reg[3] /\
+  reg'[4] = reg[4] /\
+  reg'[5] = reg[5] /\
+  reg'[6] = reg[6] /\
+  reg'[7] = reg[7] /\
+  reg'[8] = reg[8] /\
+  reg'[9] = reg[9] /\
+  reg'[10] = reg[10] /\
+  reg'[11] = reg[11] /\
+  reg'[12] = reg[12] /\
+  reg'[13] = reg[13] /\
+  reg'[14] = reg[14] /\
+  reg'[15] = reg[15] /\
+  reg'[16] = reg[16] /\
+  reg'[17] = reg[17] /\
+  reg'[28] = reg[28] /\
+  reg'[29] = reg[29]
+
+end

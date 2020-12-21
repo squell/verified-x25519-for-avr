@@ -48,7 +48,7 @@
    <proof prover="0"><result status="valid" time="0.23"/></proof>
    </goal>
    <goal name="WP_parameter bigint_subp.1.13" expl="precondition">
-   <proof prover="0"><result status="valid" time="0.37"/></proof>
+   <proof prover="0"><result status="valid" time="0.21"/></proof>
    </goal>
    <goal name="WP_parameter bigint_subp.1.14" expl="precondition">
    <proof prover="0"><result status="valid" time="0.27"/></proof>
@@ -111,7 +111,7 @@
    <proof prover="0"><result status="valid" time="57.56"/></proof>
    </goal>
    <goal name="WP_parameter bigint_subp.1.34" expl="VC for bigint_subp">
-   <proof prover="0"><result status="valid" time="0.89"/></proof>
+   <proof prover="0"><result status="valid" time="0.68"/></proof>
    </goal>
    <goal name="WP_parameter bigint_subp.1.35" expl="VC for bigint_subp">
    <proof prover="0"><result status="valid" time="0.33"/></proof>
@@ -147,10 +147,10 @@
    <proof prover="0"><result status="valid" time="0.28"/></proof>
    </goal>
    <goal name="WP_parameter bigint_subp.1.46" expl="precondition">
-   <proof prover="0"><result status="valid" time="0.44"/></proof>
+   <proof prover="0"><result status="valid" time="0.28"/></proof>
    </goal>
    <goal name="WP_parameter bigint_subp.1.47" expl="precondition">
-   <proof prover="0"><result status="valid" time="0.44"/></proof>
+   <proof prover="0"><result status="valid" time="0.28"/></proof>
    </goal>
    <goal name="WP_parameter bigint_subp.1.48" expl="precondition">
    <proof prover="0"><result status="valid" time="0.41"/></proof>

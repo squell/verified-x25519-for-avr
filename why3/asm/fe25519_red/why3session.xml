@@ -78,7 +78,7 @@
    <proof prover="4"><result status="valid" time="0.10"/></proof>
    </goal>
    <goal name="WP_parameter reduction_loop_10iter.1.5" expl="precondition">
-   <proof prover="4"><result status="valid" time="1.44"/></proof>
+   <proof prover="4"><result status="valid" time="1.13"/></proof>
    </goal>
    <goal name="WP_parameter reduction_loop_10iter.1.6" expl="precondition">
    <proof prover="4"><result status="valid" time="0.14"/></proof>
@@ -90,7 +90,7 @@
    <proof prover="4"><result status="valid" time="0.15"/></proof>
    </goal>
    <goal name="WP_parameter reduction_loop_10iter.1.9" expl="precondition">
-   <proof prover="4"><result status="valid" time="6.72"/></proof>
+   <proof prover="4"><result status="valid" time="5.69"/></proof>
    </goal>
    <goal name="WP_parameter reduction_loop_10iter.1.10" expl="precondition">
    <proof prover="4"><result status="valid" time="0.17"/></proof>
@@ -202,7 +202,7 @@
     <proof prover="6" timelimit="300" memlimit="6000"><result status="valid" time="1.51"/></proof>
     </goal>
     <goal name="WP_parameter reduction_loop_10iter.1.15.5" expl="VC for reduction_loop_10iter">
-    <proof prover="6" timelimit="300" memlimit="6000"><result status="valid" time="1.64"/></proof>
+    <proof prover="6" timelimit="300" memlimit="6000"><result status="valid" time="1.31"/></proof>
     </goal>
     <goal name="WP_parameter reduction_loop_10iter.1.15.6" expl="VC for reduction_loop_10iter">
     <proof prover="0"><result status="valid" time="0.17"/></proof>
@@ -559,7 +559,7 @@
    <goal name="WP_parameter avrnacl_fe25519_red.22.1" expl="assertion">
    <transf name="introduce_premises">
     <goal name="WP_parameter avrnacl_fe25519_red.22.1.1" expl="assertion">
-    <proof prover="4" timelimit="30" memlimit="4000"><result status="valid" time="2.97"/></proof>
+    <proof prover="4" timelimit="30" memlimit="4000"><result status="valid" time="2.47"/></proof>
     </goal>
    </transf>
    </goal>
@@ -829,7 +829,7 @@
   <goal name="WP_parameter avrnacl_fe25519_red.49" expl="precondition">
   <transf name="compute_in_goal">
    <goal name="WP_parameter avrnacl_fe25519_red.49.1" expl="precondition">
-   <proof prover="0" timelimit="13" memlimit="8000"><result status="valid" time="2.43"/></proof>
+   <proof prover="0" timelimit="13" memlimit="8000"><result status="valid" time="2.01"/></proof>
    </goal>
   </transf>
   </goal>

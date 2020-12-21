@@ -100,7 +100,7 @@
   <goal name="WP_parameter sqr128.11" expl="VC for sqr128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter sqr128.11.1" expl="VC for sqr128">
-   <proof prover="2" timelimit="300"><result status="valid" time="47.78"/></proof>
+   <proof prover="2" timelimit="300"><result status="valid" time="40.51"/></proof>
    </goal>
   </transf>
   </goal>
@@ -456,7 +456,7 @@
   <goal name="WP_parameter sqr128.64" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter sqr128.64.1" expl="assertion">
-   <proof prover="2" timelimit="30"><result status="valid" time="18.23"/></proof>
+   <proof prover="2" timelimit="30"><result status="valid" time="16.28"/></proof>
    </goal>
   </transf>
   </goal>

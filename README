@@ -1,15 +1,16 @@
 why3/asm
 	The Why3 proof files for the assembly code (and associated files)
+
 why3/c
 	The Why3 proof files for the avr-gcc code (and associated files)
 
 x25519/
 	The modified X25519 implementation that was verified 
+
 	This is based on the "small" version in:
 		https://munacl.cryptojedi.org/curve25519-atmega.shtml
 
 	The file 'patch' contains all changes made to the original
-
 
 All proofs can be replayed by typing 'make'. This may some some time.
 Proofs may fail due to timeout if your computer is significantly slower
@@ -18,9 +19,9 @@ than our machine:
 * Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz, with 32GB RAM
 * GNU/Linux 10 (buster); amd64
 
-Proofs can be inspected using the why3 ide ("./why3 ide file.mlw");
-this requires CVC3,CVC4,Z3,E and Why3. A tar-ball with binaries that work
-on a Debian buster installation can be downloaded at:
+Proofs can be inspected using the why3 ide ("./why3 ide -L . -L .. file.mlw");
+this requires CVC3,CVC4,Z3,E and Why3. A tar-ball with binaries (+ sources)
+that work on a Debian buster installation can be downloaded at:
 
-	http://cs.ru.nl/~mschool/why3dist.tar.gz
+	http://cs.ru.nl/~M.Schoolderman/why3dist.tar.gz
 

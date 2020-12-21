@@ -72,6 +72,7 @@ void fe25519_mul(fe25519 *r, const fe25519 *x, const fe25519 *y)
   fe25519_red(r,t);
 } 
 
+/*
 static const fe25519 _121666 = {{0x42, 0xDB, 0x01, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
 
 void fe25519_mul121666(fe25519 *r, const fe25519 *x)
@@ -80,6 +81,7 @@ void fe25519_mul121666(fe25519 *r, const fe25519 *x)
   bigint_mul256(t,x->v,_121666.v);
   fe25519_red(r,t);
 } 
+*/
 
 void fe25519_square(fe25519 *r, const fe25519 *x)
 {

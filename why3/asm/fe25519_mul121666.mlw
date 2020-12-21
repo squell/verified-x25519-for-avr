@@ -1,0 +1,442 @@
+module AVRcode
+
+use import avrmodel.AVRint
+use import int.Int
+use import int.EuclideanDivision
+use import bv.Pow2int
+use import common_lemmas.AvrModelLemmas
+use common_lemmas.BV_asr_Lemmas
+use bv.BV8
+use import ref.Ref
+
+use import int.Abs
+
+use avrmodel.Shadow as S
+
+type label = Loop | Cloop
+exception Branch label
+
+let dec_brne (dst: register) (loc: label): unit
+  writes { reg }
+  ensures { reg = old reg[dst <- mod (old (reg[dst] - 1)) 256] }
+  ensures { reg[dst] = 0 }
+  raises { Branch pc -> reg = old reg[dst <- mod (old (reg[dst] - 1)) 256] /\ reg[dst] <> 0 /\ pc = loc }
+= dec dst;
+  if read_byte reg dst <> 0 then raise (Branch loc)
+
+(* instrument the difficult-to-verify ld_inc instruction with ghost code that performs an ldd *)
+val ghost st_inc'_base: ref int
+let st_inc' (dst src: register) (ghost ofs: int)
+  writes { reg }
+  writes { mem }
+  requires { 32 <= uint 2 reg dst < pow2 16-1 }
+  ensures { let cur = uint 2 (old reg) dst in
+            let inc = cur+1 in
+            reg = (old reg)[dst <- mod inc 256][dst+1 <- div inc 256] }
+  ensures { mem = old (mem[uint 2 reg dst <- reg[src]]) }
+  ensures { uint 2 reg dst = old(uint 2 reg dst)+1 }
+  requires {uint 2 reg dst = !st_inc'_base + ofs }
+  ensures { mem[!st_inc'_base + ofs] = (old reg)[src] }
+= AVRint.st_inc dst src
+
+predicate (===) (x y: int) = mod x (pow2 255-19) = mod y (pow2 255-19)
+
+lemma and_mod:
+  forall w. 0 <= w < 256 -> BV8.t'int (BV8.bw_and (BV8.of_int w) (BV8.of_int 0x7f)) = mod w 128
+
+let ghost mod25519_red (x y: int)
+  ensures { x+pow2 255*y === x+19*y }
+= ()
+
+let fe25519_mul121666 ()
+  requires { 32 <= uint 2 reg 22 < pow2 15 }
+  requires { 32 <= uint 2 reg 24 < pow2 15 }
+  requires { let (x, z) = (22, 24) in uint 2 reg z <= uint 2 reg x \/ uint 2 reg z >= uint 2 reg x+32 }
+
+  ensures { uint 32 mem (uint 2 reg 24) === old(uint 32 mem (uint 2 reg 22)*121666) }
+
+  ensures { saved_registers (old reg) reg }
+  ensures { let r = old (uint 2 reg 24) in
+            forall i. mem[i] <> (old mem)[i] -> r <= i < r + 32 }
+  ensures { !stack_pointer = old !stack_pointer /\ forall i. i > old !stack_pointer -> stack[i] = (old stack)[i] }
+  raises { Branch _ -> true }
+= 
+  push r8;
+  movw r30 r24;
+  movw r26 r22;
+'S:
+  let ghost smem = as_copy mem in
+  clr r8; (* zero register *)
+  
+  ldi r18 0x42;
+  ldi r19 0xdb;
+  
+S.init();
+abstract ensures { S.synchronized S.shadow reg }
+ensures { uint 2 mem (old(uint 2 reg rZ)) + pow2 16*uint 2 reg 23 + pow2 32*reg[22] = old(uint 2 mem (uint 2 reg rX) * 121666) }
+ensures { uint 2 reg rX = old (uint 2 reg rX+2) }
+ensures { uint 2 reg rZ = old (uint 2 reg rZ+2) }
+ensures { forall i. mem[i] <> (old mem)[i] -> old(uint 2 reg rZ) <= i <= old(uint 2 reg rZ)+1 }
+  ld_inc r21 rX; (* x0 *)
+  
+  mul r18 r21;
+  st_inc rZ  r0; (* r0 *)
+  mov r22 r1;
+
+  mul r19 r21;
+  add r22 r0;
+  mov r23 r21;
+  adc r23 r1;
+  clr r24;
+  adc r24 r24;
+  ld_inc r21 rX; (* x1 *)
+  
+  mul r18 r21;
+  add r22 r0;
+  adc r23 r1;
+  adc r24 r8;
+  st_inc rZ  r22; (* r1 *)
+  
+  mul r19 r21;
+  add r23 r0;
+  adc r24 r1;
+  add r24 r21;
+  clr r22;
+  adc r22 r8;
+
+S.modify_r0(); S.modify_r1();
+S.modify_r21(); S.modify_r22(); S.modify_r23(); S.modify_r24();
+S.modify_r26(); S.modify_r27();
+S.modify_r30(); S.modify_r31();
+end;
+  
+  
+  ldi r25 9;
+  
+(* NOTE: the backwards jumps in this code are clearly 'while'-loops, and are modelled as such. to ensure that the
+   while-loop *condition* does not introduce any additional semantics to the assembly code that wasn't there before, we add 
+   checks; in Why3 1.x, a continue/break could have been more useful to avoid this *)
+
+'Loop:
+
+S.init();
+check { "expl:while-validity" reg[25] <> 0 };
+while read_byte reg 25 <> 0 do
+invariant { (forall i. 0 <= reg[i] < 256) /\ (forall i. 0 <= mem[i] < 256) } (* type invariant *)
+invariant { S.synchronized S.shadow reg }
+variant { reg[25] }
+
+invariant { let w = 3*(9-reg[25])+2 in
+            uint w mem (at(uint 2 reg rZ)'S) + pow2 (w*8)*(uint 2 reg 23 + pow2 16*reg[22]) = uint w (at mem 'S) (at (uint 2 reg rX)'S) * 121666 }
+
+invariant { uint 2 reg rX = at (uint 2 reg rX)'Loop + 3*(9-reg[25]) }
+invariant { uint 2 reg rZ = at (uint 2 reg rZ)'Loop + 3*(9-reg[25]) }
+invariant { 0 <= reg[25] <= 9 }
+
+invariant { let w = 3*(9-reg[25])+2 in
+            forall i. mem[i] <> (at mem 'Loop)[i] -> at(uint 2 reg rZ)'Loop <= i < uint 2 reg rZ }
+invariant { reg[22] <= 1 } (* NOTE: this can in principle be deduced, I think *)
+'B:
+    let ghost w = 3*(9-read_byte reg 25)+2 in 
+    let ghost omem = as_copy mem in
+
+(* NOTE: the next three blocks are basically an unrolled iteration; we can re-use the abstract blocks with minor modifications *)
+abstract (* macro *)
+ensures { S.synchronized S.shadow reg }
+ensures { mem[old(uint 2 reg rZ)] + pow2 8*(uint 1 reg 24 + pow2 8*reg[22] + pow2 16*reg[23]) 
+          = old(uint 2 reg 23 + pow2 16*reg[22] + mem[uint 2 reg rX]*121666) }
+ensures { uint 2 reg rX = old(uint 2 reg rX)+1 }
+ensures { uint 2 reg rZ = old(uint 2 reg rZ)+1 }
+ensures { reg[23] <= 1 }
+ensures { forall i. mem[i] <> (old mem)[i] -> i = old(uint 2 reg rZ) }
+    ld_inc r21 rX; (* x1 *)
+
+    mul r18 r21;
+    add r23 r0;
+    adc r24 r1;
+    adc r22 r8;
+    st_inc rZ  r23; (* r1 *)
+
+    mul r19 r21;
+    add r24 r0;
+    adc r22 r1;
+    add r22 r21;
+    clr r23;
+    adc r23 r8;
+S.modify_r0(); S.modify_r1();
+S.modify_r21(); S.modify_r22(); S.modify_r23(); S.modify_r24();
+S.modify_r26(); S.modify_r27(); S.modify_r30(); S.modify_r31();
+end;
+
+abstract (* macro *)
+ensures { S.synchronized S.shadow reg }
+ensures { mem[old(uint 2 reg rZ)] + pow2 8*(uint 3 reg 22) 
+          = old(uint 1 reg 24 + pow2 8*reg[22] + pow2 16*reg[23] + mem[uint 2 reg rX]*121666) }
+ensures { uint 2 reg rX = old(uint 2 reg rX)+1 }
+ensures { uint 2 reg rZ = old(uint 2 reg rZ)+1 }
+ensures { reg[24] <= 1 }
+ensures { forall i. mem[i] <> (old mem)[i] -> i = old(uint 2 reg rZ) }
+    ld_inc r21 rX; (* x1 *)
+  
+    mul r18 r21;
+    add r24 r0;
+    adc r22 r1;
+    adc r23 r8;
+    st_inc rZ  r24; (* r1 *)
+  
+    mul r19 r21;
+    add r22 r0;
+    adc r23 r1;
+    add r23 r21;
+    clr r24;
+    adc r24 r8;
+S.modify_r0(); S.modify_r1();
+S.modify_r21(); S.modify_r22(); S.modify_r23(); S.modify_r24();
+S.modify_r26(); S.modify_r27(); S.modify_r30(); S.modify_r31();
+end;
+
+abstract (* macro *)
+ensures { S.synchronized S.shadow reg }
+ensures { mem[old(uint 2 reg rZ)] + pow2 8*(uint 2 reg 23 + pow2 16*reg[22]) 
+          = old(uint 3 reg 22 + mem[uint 2 reg rX]*121666) }
+ensures { uint 2 reg rX = old(uint 2 reg rX)+1 }
+ensures { uint 2 reg rZ = old(uint 2 reg rZ)+1 }
+ensures { reg[22] <= 1 }
+ensures { forall i. mem[i] <> (old mem)[i] -> i = old(uint 2 reg rZ) }
+
+    ld_inc r21 rX; (* x1 *)
+  
+    mul r18 r21;
+    add r22 r0;
+    adc r23 r1;
+    adc r24 r8;
+    st_inc rZ  r22; (* r1 *)
+  
+    mul r19 r21;
+    add r23 r0;
+    adc r24 r1;
+    add r24 r21;
+    clr r22;
+    adc r22 r8;
+
+S.modify_r0(); S.modify_r1();
+S.modify_r21(); S.modify_r22(); S.modify_r23(); S.modify_r24();
+S.modify_r26(); S.modify_r27(); S.modify_r30(); S.modify_r31();
+end;
+
+  assert { uint 3 mem (at(uint 2 reg rZ)'B) + pow2 24*(uint 2 reg 23 + pow2 16*reg[22])
+           = at(uint 2 reg 23+pow2 16*reg[22] + uint 3 mem (uint 2 reg rX)*121666)'B };
+
+  ghost  uint_split smem (uint 2 reg rX-(w+3)) (w+3) w;
+  ghost uint_split mem (uint 2 reg rZ-(w+3)) (w+3) w;
+  ghost eq_uint w mem omem (uint 2 reg rZ-(w+3));
+  ghost eq_uint 3 smem omem (uint 2 reg rX-3);
+  assert { at(uint 2 reg rZ)'S = uint 2 reg rZ-(w+3) };
+  assert { at(uint 2 reg rX)'S = uint 2 reg rX-(w+3) };
+  assert { pow2 ((w+3)*8) = pow2 24*pow2 (w*8) };
+
+  assert {
+    uint (w+3) mem (at(uint 2 reg rZ)'S) + pow2 ((w+3)*8)*(uint 2 reg 23 + pow2 16*reg[22]) 
+  = uint (w+3) (at mem 'S) (at (uint 2 reg rX)'S) * 121666
+  };
+abstract
+  ensures { S.synchronized S.shadow reg }
+  ensures { reg[25] = old (reg[25]-1) }
+try
+(*
+  dec r25;
+  brne loop;
+*)
+  dec_brne r25 Loop;
+  check { "expl:while-validity" reg[25] = 0 }
+with Branch Loop -> 
+  check { "expl:while-validity" reg[25] <> 0 }
+end;
+S.modify_r25();
+end;
+done;
+
+'Tmp:
+abstract ensures { S.synchronized S.shadow reg }
+ensures { uint 2 mem (old(uint 2 reg rZ)) + pow2 16*(uint 3 reg 22 + ?cf*pow2 24)
+           = old(uint 2 reg 23+pow2 16*reg[22] + uint 3 mem (uint 2 reg rX)*121666) }
+ensures { uint 2 reg rX = old(uint 2 reg rX)+3 }
+ensures { uint 2 reg rZ = old(uint 2 reg rZ)+2 }
+ensures { forall i. mem[i] <> (old mem)[i] -> old (uint 2 reg rZ) <= i < uint 2 reg rZ }
+
+abstract (* macro *)
+ensures { S.synchronized S.shadow reg }
+ensures { mem[old(uint 2 reg rZ)] + pow2 8*(reg[24] + pow2 8*uint 2 reg 22) 
+          = old(uint 2 reg 23 + pow2 16*reg[22] + mem[uint 2 reg rX]*121666) }
+ensures { uint 2 reg rX = old(uint 2 reg rX)+1 }
+ensures { uint 2 reg rZ = old(uint 2 reg rZ)+1 }
+ensures { reg[23] <= 1 }
+ensures { forall i. mem[i] <> (old mem)[i] -> i = old(uint 2 reg rZ) }
+  ld_inc r21 rX; (* x1 *)
+  
+  mul r18 r21;
+  add r23 r0;
+  adc r24 r1;
+  adc r22 r8;
+  st_inc rZ  r23; (* r1 *)
+  
+  mul r19 r21;
+  add r24 r0;
+  adc r22 r1;
+  add r22 r21;
+  clr r23;
+  adc r23 r8;
+
+S.modify_r0(); S.modify_r1();
+S.modify_r21(); S.modify_r22(); S.modify_r23(); S.modify_r24();
+S.modify_r26(); S.modify_r27(); S.modify_r30(); S.modify_r31();
+end;
+
+abstract (* macro *)
+ensures { S.synchronized S.shadow reg }
+ensures { mem[old(uint 2 reg rZ)] + pow2 8*(uint 3 reg 22) 
+          = old(uint 1 reg 24 + pow2 8*uint 2 reg 22 + mem[uint 2 reg rX]*121666) }
+ensures { uint 2 reg rX = old(uint 2 reg rX)+1 }
+ensures { uint 2 reg rZ = old(uint 2 reg rZ)+1 }
+ensures { reg[24] <= 1 }
+ensures { forall i. mem[i] <> (old mem)[i] -> i = old(uint 2 reg rZ) }
+
+  ld_inc r21 rX; (* x1 *)
+  
+  mul r18 r21;
+  add r24 r0;
+  adc r22 r1;
+  adc r23 r8;
+  st_inc rZ  r24; (* r1 *)
+
+  mul r19 r21;
+  add r22 r0;
+  adc r23 r1;
+  add r23 r21;
+  clr r24;
+  adc r24 r8;
+
+S.modify_r0(); S.modify_r1();
+S.modify_r21(); S.modify_r22(); S.modify_r23(); S.modify_r24();
+S.modify_r26(); S.modify_r27(); S.modify_r30(); S.modify_r31();
+end;
+
+  ld_inc r21 rX; (* x1 *)
+  
+  mul r18 r21;
+  add r22 r0;
+  adc r23 r1;
+  adc r24 r8;
+
+  mul r19 r21;
+  add r23 r0;
+  adc r24 r1;
+  add r24 r21;
+
+S.modify_r0(); S.modify_r1();
+S.modify_r21(); S.modify_r22(); S.modify_r23(); S.modify_r24();
+S.modify_r26(); S.modify_r27(); S.modify_r30(); S.modify_r31();
+end;
+
+assert { uint 31 mem (at(uint 2 reg rZ)'S) + pow2 248*(uint 3 reg 22 + ?cf*pow2 24)
+           = at(uint 29 mem (at(uint 2 reg rZ)'S) + pow2 232*(uint 2 reg 23+pow2 16*reg[22] + uint 3 mem (uint 2 reg rX)*121666))'Tmp 
+           = uint 29 (at mem 'S) (at (uint 2 reg rX)'S) * 121666 + pow2 232*at(uint 3 mem (uint 2 reg rX)*121666)'Tmp
+           = uint 32 (at mem 'S) (at (uint 2 reg rX)'S) * 121666 };
+
+  mov r18 r22;
+  ldi r19 0x7f;
+  and r22 r19;
+  st_inc rZ  r22; (* r31 *)
+
+  clr r22;
+  adc r22 r8;
+  
+'Tmp:
+  lsl r18;
+assert { ?cf = at(div reg[18] 128)'Tmp };
+  rol r23;
+  rol r24;
+  rol r22;
+  
+assert { uint 32 mem (at(uint 2 reg rZ)'S) + pow2 255*(uint 2 reg 23 + reg[22]*pow2 16) =
+         uint 32 (at mem 'S) (at (uint 2 reg rX)'S) * 121666 };
+
+ghost mod25519_red (uint 32 mem (uint 2 reg rZ-32)) (uint 2 reg 23+uint 1 reg 22*pow2 16);
+assert { uint 32 mem (at(uint 2 reg rZ)'S) + 19*(uint 2 reg 23 + reg[22]*pow2 16) ===
+         uint 32 mem (at(uint 2 reg rZ)'S) + pow2 255*(uint 2 reg 23 + reg[22]*pow2 16) };
+  
+'Tmp:
+  ldi r18 19;
+  
+  mul r23 r18;
+  mov r23 r0; (* c0 *)
+  mov r19 r1;
+
+  mul r24 r18;
+  add r19 r0; (* c1 *)
+  clr r24;
+  adc r24 r1;
+  
+  mul r22 r18;
+  add r24 r0; (* c2 *)
+assert { reg[23] + pow2 8*reg[19] + pow2 16*reg[24] = 19*at(uint 2 reg 23 + reg[22]*pow2 16)'Tmp };
+
+  sbiw r30 0x20;
+
+'B:
+
+  ghost st_inc'_base := uint 2 reg rZ;
+  ld r18 rZ;
+  add r18 r23;
+  st_inc' rZ  r18 0;
+
+  ld r18 rZ;
+  assert { reg[18] = at(mem[uint 2 reg rZ+1])'B };
+  adc r18 r19;
+  st_inc' rZ  r18 1;
+
+  ld r18 rZ;
+  assert { reg[18] = at(mem[uint 2 reg rZ+2])'B };
+  adc r18 r24;
+  st_inc' rZ  r18 2;
+
+  assert { uint 3 mem (at(uint 2 reg rZ)'B) + ?cf*pow2 24 = at(uint 3 mem (uint 2 reg rZ) + reg[23] + pow2 8*reg[19] + pow2 16*reg[24])'B };
+  
+  ldi r25 29;
+
+(* cloop: *)
+'Cloop:
+S.init();
+while read_byte reg 25 <> 0 do
+invariant { (forall i. 0 <= reg[i] < 256) /\ (forall i. 0 <= mem[i] < 256) } (* type invariant *)
+invariant { S.synchronized S.shadow reg }
+variant { reg[25] }
+invariant { 0 <= reg[25] <= 29 }
+
+invariant { let w = 32-reg[25] in
+            uint w mem (at(uint 2 reg rZ)'B) + ?cf*pow2 (8*w)
+            = uint w (at mem 'B) (at(uint 2 reg rZ)'B) + at(reg[23]+pow2 8*reg[19]+pow2 16*reg[24])'B }
+
+invariant { uint 2 reg rZ = at(uint 2 reg rZ)'B + 32-reg[25] }
+invariant { let w = 32-reg[25] in
+            forall i. mem[i] <> (at mem 'B)[i] -> at(uint 2 reg rZ)'B <= i < uint 2 reg rZ }
+
+    ld r18 rZ;
+    adc r18 r8;
+    st_inc rZ  r18;
+(*
+  dec r25;
+  brne cloop;
+*)
+try
+  dec_brne r25 Cloop;
+  check { "expl:while-validity" reg[25] = 0 };
+with Branch Loop ->
+  check { "expl:while-validity" reg[25] <> 1 };
+end
+done;
+ 
+  clr r1; (* OPT NOTE: this instrution is provably superfluous *)
+  pop r8
+  
+end

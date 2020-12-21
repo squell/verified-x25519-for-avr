@@ -5,4 +5,4 @@
 # usage: extract_code.sh file.mlw
 
 why3 -L . -L .. extract -D extract/asm.drv -o /tmp "$1"
-sed 's/^$/;/' "/tmp/${1%.mlw}__AVRcode.ml" | tr -d '\n' | tr ';' '\n' | sed -f extract/unmangle.sed
+sed 's/^$/;/' "/tmp/${1%.mlw}__AVRcode.ml" | tr -d '\n' | tr ';' '\n' | (sed -f extract/unmangle.sed; echo LASTDEF) #| m4 | sed 's/^ \+/  /'

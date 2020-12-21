@@ -1599,10 +1599,8 @@ assert { reg[0] = if stack[!stack_pointer] = 0 then 0xFF else 0x00 };
   eor r18 r0;
   eor r19 r0;
 (* OPTIMIZE: these instructions are unnecessary, and we can prove this *)
-(*
   mov r28 r0;
   add r28 r28; (* sets carry flag if r28 = 0xff *)
-*)
 S.modify_r0(); S.modify_r1();
 S.modify_r4(); S.modify_r5(); S.modify_r6(); S.modify_r7();
 S.modify_r10(); S.modify_r11(); S.modify_r12(); S.modify_r13(); S.modify_r14(); S.modify_r15(); S.modify_r16(); S.modify_r17(); S.modify_r18(); S.modify_r19();

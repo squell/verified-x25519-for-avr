@@ -483,7 +483,7 @@
    <goal name="WP_parameter add31_cf_to_z.1.64" expl="postcondition">
    <transf name="introduce_premises">
     <goal name="WP_parameter add31_cf_to_z.1.64.1" expl="postcondition">
-    <proof prover="0"><result status="valid" time="0.82"/></proof>
+    <proof prover="0"><result status="valid" time="0.63"/></proof>
     </goal>
    </transf>
    </goal>

@@ -8,7 +8,7 @@
 <prover id="4" name="CVC4" version="1.4" alternative="noBV" timelimit="130" steplimit="0" memlimit="1000"/>
 <prover id="6" name="Eprover" version="2.0" timelimit="13" steplimit="0" memlimit="1000"/>
 <file name="../bigint_mul256_mul128.mlw">
-<theory name="AVRcode" sum="615f690d74fcebceff47d8aef768984e">
+<theory name="AVRcode" sum="fba784bce77f959e42c59ee7f48cd9eb">
  <goal name="mul_bound_preserve" expl="">
  <proof prover="6" timelimit="300" memlimit="6000"><result status="valid" time="0.10"/></proof>
  </goal>
@@ -241,7 +241,7 @@
    <goal name="WP_parameter mul128.31.1" expl="VC for mul128">
    <transf name="eliminate_if_term">
     <goal name="WP_parameter mul128.31.1.1" expl="VC for mul128">
-    <proof prover="4" timelimit="60"><result status="valid" time="18.21"/></proof>
+    <proof prover="4" timelimit="60"><result status="valid" time="15.81"/></proof>
     </goal>
    </transf>
    </goal>
@@ -250,7 +250,7 @@
   <goal name="WP_parameter mul128.32" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.32.1" expl="VC for mul128">
-   <proof prover="4" steplimit="-1"><result status="valid" time="8.10"/></proof>
+   <proof prover="4" steplimit="-1"><result status="valid" time="7.02"/></proof>
    </goal>
   </transf>
   </goal>
@@ -264,21 +264,21 @@
   <goal name="WP_parameter mul128.34" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.34.1" expl="VC for mul128">
-   <proof prover="4" steplimit="-1"><result status="valid" time="5.00"/></proof>
+   <proof prover="4" steplimit="-1"><result status="valid" time="4.38"/></proof>
    </goal>
   </transf>
   </goal>
   <goal name="WP_parameter mul128.35" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.35.1" expl="assertion">
-   <proof prover="4" timelimit="30"><result status="valid" time="9.44"/></proof>
+   <proof prover="4" timelimit="30"><result status="valid" time="8.30"/></proof>
    </goal>
   </transf>
   </goal>
   <goal name="WP_parameter mul128.36" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.36.1" expl="assertion">
-   <proof prover="4" timelimit="50"><result status="valid" time="9.82"/></proof>
+   <proof prover="4" timelimit="50"><result status="valid" time="8.48"/></proof>
    </goal>
   </transf>
   </goal>
@@ -295,14 +295,14 @@
   <goal name="WP_parameter mul128.38" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.38.1" expl="assertion">
-   <proof prover="4" timelimit="60" steplimit="1"><result status="valid" time="7.42"/></proof>
+   <proof prover="4" timelimit="60" steplimit="1"><result status="valid" time="6.45"/></proof>
    </goal>
   </transf>
   </goal>
   <goal name="WP_parameter mul128.39" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.39.1" expl="assertion">
-   <proof prover="4" timelimit="60"><result status="valid" time="7.75"/></proof>
+   <proof prover="4" timelimit="60"><result status="valid" time="6.85"/></proof>
    </goal>
   </transf>
   </goal>
@@ -311,7 +311,7 @@
    <goal name="WP_parameter mul128.40.1" expl="VC for mul128">
    <transf name="split_goal_wp">
     <goal name="WP_parameter mul128.40.1.1" expl="VC for mul128">
-    <proof prover="4" memlimit="2000"><result status="valid" time="10.32"/></proof>
+    <proof prover="4" memlimit="2000"><result status="valid" time="9.01"/></proof>
     </goal>
     <goal name="WP_parameter mul128.40.1.2" expl="VC for mul128">
     <proof prover="4" memlimit="2000"><result status="valid" time="7.08"/></proof>
@@ -653,7 +653,7 @@
   <goal name="WP_parameter mul128.88" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.88.1" expl="VC for mul128">
-   <proof prover="4" steplimit="1"><result status="valid" time="32.45"/></proof>
+   <proof prover="4" steplimit="1"><result status="valid" time="28.16"/></proof>
    </goal>
   </transf>
   </goal>
@@ -782,7 +782,7 @@
    <goal name="WP_parameter mul128.106.1" expl="VC for mul128">
    <transf name="eliminate_if_term">
     <goal name="WP_parameter mul128.106.1.1" expl="VC for mul128">
-    <proof prover="4" memlimit="2000"><result status="valid" time="58.90"/></proof>
+    <proof prover="4" memlimit="2000"><result status="valid" time="52.04"/></proof>
     </goal>
    </transf>
    </goal>
@@ -812,35 +812,35 @@
   <goal name="WP_parameter mul128.110" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.110.1" expl="VC for mul128">
-   <proof prover="4"><result status="valid" time="9.18"/></proof>
+   <proof prover="4"><result status="valid" time="8.12"/></proof>
    </goal>
   </transf>
   </goal>
   <goal name="WP_parameter mul128.111" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.111.1" expl="assertion">
-   <proof prover="4"><result status="valid" time="18.39"/></proof>
+   <proof prover="4"><result status="valid" time="16.13"/></proof>
    </goal>
   </transf>
   </goal>
   <goal name="WP_parameter mul128.112" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.112.1" expl="VC for mul128">
-   <proof prover="4"><result status="valid" time="14.12"/></proof>
+   <proof prover="4"><result status="valid" time="12.31"/></proof>
    </goal>
   </transf>
   </goal>
   <goal name="WP_parameter mul128.113" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.113.1" expl="assertion">
-   <proof prover="4" timelimit="300"><result status="valid" time="14.59"/></proof>
+   <proof prover="4" timelimit="300"><result status="valid" time="12.78"/></proof>
    </goal>
   </transf>
   </goal>
   <goal name="WP_parameter mul128.114" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.114.1" expl="assertion">
-   <proof prover="4"><result status="valid" time="14.55"/></proof>
+   <proof prover="4"><result status="valid" time="12.59"/></proof>
    </goal>
   </transf>
   </goal>
@@ -857,14 +857,14 @@
   <goal name="WP_parameter mul128.116" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.116.1" expl="assertion">
-   <proof prover="4" memlimit="2000"><result status="valid" time="14.45"/></proof>
+   <proof prover="4" memlimit="2000"><result status="valid" time="12.56"/></proof>
    </goal>
   </transf>
   </goal>
   <goal name="WP_parameter mul128.117" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.117.1" expl="assertion">
-   <proof prover="4" memlimit="2000"><result status="valid" time="14.44"/></proof>
+   <proof prover="4" memlimit="2000"><result status="valid" time="12.57"/></proof>
    </goal>
   </transf>
   </goal>
@@ -1317,7 +1317,7 @@
    <goal name="WP_parameter mul128.182.1" expl="VC for mul128">
    <transf name="compute_in_goal">
     <goal name="WP_parameter mul128.182.1.1" expl="VC for mul128">
-    <proof prover="4" memlimit="2000"><result status="valid" time="23.49"/></proof>
+    <proof prover="4" memlimit="2000"><result status="valid" time="20.55"/></proof>
     </goal>
    </transf>
    </goal>
@@ -1328,7 +1328,7 @@
    <goal name="WP_parameter mul128.183.1" expl="VC for mul128">
    <transf name="compute_in_goal">
     <goal name="WP_parameter mul128.183.1.1" expl="VC for mul128">
-    <proof prover="4" memlimit="2000"><result status="valid" time="30.57"/></proof>
+    <proof prover="4" memlimit="2000"><result status="valid" time="26.70"/></proof>
     </goal>
    </transf>
    </goal>
@@ -1350,7 +1350,7 @@
    <goal name="WP_parameter mul128.185.1" expl="VC for mul128">
    <transf name="compute_in_goal">
     <goal name="WP_parameter mul128.185.1.1" expl="VC for mul128">
-    <proof prover="4" memlimit="2000"><result status="valid" time="11.23"/></proof>
+    <proof prover="4" memlimit="2000"><result status="valid" time="9.86"/></proof>
     </goal>
    </transf>
    </goal>
@@ -1366,14 +1366,14 @@
   <goal name="WP_parameter mul128.187" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.187.1" expl="VC for mul128">
-   <proof prover="4" memlimit="2000"><result status="valid" time="21.72"/></proof>
+   <proof prover="4" memlimit="2000"><result status="valid" time="19.08"/></proof>
    </goal>
   </transf>
   </goal>
   <goal name="WP_parameter mul128.188" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.188.1" expl="VC for mul128">
-   <proof prover="4" memlimit="2000"><result status="valid" time="21.97"/></proof>
+   <proof prover="4" memlimit="2000"><result status="valid" time="19.12"/></proof>
    </goal>
   </transf>
   </goal>
@@ -1442,7 +1442,7 @@
   <goal name="WP_parameter mul128.197" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.197.1" expl="VC for mul128">
-   <proof prover="4"><result status="valid" time="10.89"/></proof>
+   <proof prover="4"><result status="valid" time="9.61"/></proof>
    </goal>
   </transf>
   </goal>
@@ -1460,21 +1460,21 @@
   <goal name="WP_parameter mul128.200" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.200.1" expl="VC for mul128">
-   <proof prover="4"><result status="valid" time="33.38"/></proof>
+   <proof prover="4"><result status="valid" time="28.98"/></proof>
    </goal>
   </transf>
   </goal>
   <goal name="WP_parameter mul128.201" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.201.1" expl="VC for mul128">
-   <proof prover="4"><result status="valid" time="36.68"/></proof>
+   <proof prover="4"><result status="valid" time="31.64"/></proof>
    </goal>
   </transf>
   </goal>
   <goal name="WP_parameter mul128.202" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.202.1" expl="VC for mul128">
-   <proof prover="2"><result status="valid" time="8.38"/></proof>
+   <proof prover="2"><result status="valid" time="6.80"/></proof>
    </goal>
   </transf>
   </goal>
@@ -1488,7 +1488,7 @@
   <goal name="WP_parameter mul128.204" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.204.1" expl="VC for mul128">
-   <proof prover="4"><result status="valid" time="16.56"/></proof>
+   <proof prover="4"><result status="valid" time="14.67"/></proof>
    </goal>
   </transf>
   </goal>
@@ -1505,7 +1505,7 @@
   <goal name="WP_parameter mul128.207" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.207.1" expl="VC for mul128">
-   <proof prover="4"><result status="valid" time="18.60"/></proof>
+   <proof prover="4"><result status="valid" time="16.55"/></proof>
    </goal>
   </transf>
   </goal>
@@ -1522,7 +1522,7 @@
   <goal name="WP_parameter mul128.210" expl="VC for mul128">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.210.1" expl="VC for mul128">
-   <proof prover="4"><result status="valid" time="6.23"/></proof>
+   <proof prover="4"><result status="valid" time="5.44"/></proof>
    </goal>
   </transf>
   </goal>
@@ -1549,7 +1549,7 @@
    <goal name="WP_parameter mul128.214.1" expl="VC for mul128">
    <transf name="eliminate_if">
     <goal name="WP_parameter mul128.214.1.1" expl="VC for mul128">
-    <proof prover="4" memlimit="2000"><result status="valid" time="55.91"/></proof>
+    <proof prover="4" memlimit="2000"><result status="valid" time="49.69"/></proof>
     </goal>
    </transf>
    </goal>
@@ -1586,7 +1586,7 @@
   <goal name="WP_parameter mul128.219" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.219.1" expl="assertion">
-   <proof prover="4" timelimit="200" memlimit="2000"><result status="valid" time="42.39"/></proof>
+   <proof prover="4" timelimit="200" memlimit="2000"><result status="valid" time="37.57"/></proof>
    </goal>
   </transf>
   </goal>
@@ -1706,7 +1706,7 @@
    <goal name="WP_parameter mul128.236.1" expl="VC for mul128">
    <transf name="eliminate_if">
     <goal name="WP_parameter mul128.236.1.1" expl="VC for mul128">
-    <proof prover="4" memlimit="2000"><result status="valid" time="15.92"/></proof>
+    <proof prover="4" memlimit="2000"><result status="valid" time="13.50"/></proof>
     </goal>
    </transf>
    </goal>
@@ -1717,10 +1717,10 @@
    <goal name="WP_parameter mul128.237.1" expl="VC for mul128">
    <transf name="split_goal_wp">
     <goal name="WP_parameter mul128.237.1.1" expl="VC for mul128">
-    <proof prover="4" memlimit="2000"><result status="valid" time="8.15"/></proof>
+    <proof prover="4" memlimit="2000"><result status="valid" time="8.07"/></proof>
     </goal>
     <goal name="WP_parameter mul128.237.1.2" expl="VC for mul128">
-    <proof prover="4" memlimit="2000"><result status="valid" time="2.51"/></proof>
+    <proof prover="4" memlimit="2000"><result status="valid" time="7.20"/></proof>
     </goal>
    </transf>
    </goal>
@@ -2055,7 +2055,7 @@
   <goal name="WP_parameter mul128.285" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter mul128.285.1" expl="assertion">
-   <proof prover="4"><result status="valid" time="11.66"/></proof>
+   <proof prover="4"><result status="valid" time="10.30"/></proof>
    </goal>
   </transf>
   </goal>

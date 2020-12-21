@@ -800,7 +800,7 @@
   <proof prover="6"><result status="valid" time="0.04"/></proof>
   </goal>
   <goal name="WP_parameter asr.2" expl="postcondition">
-  <proof prover="8"><result status="valid" time="0.41"/></proof>
+  <proof prover="8"><result status="valid" time="0.25"/></proof>
   </goal>
   <goal name="WP_parameter asr.3" expl="postcondition">
   <proof prover="6"><result status="valid" time="0.03"/></proof>
@@ -989,10 +989,10 @@
  <proof prover="7"><result status="valid" time="1.70"/></proof>
  </goal>
  <goal name="uint_26" expl="">
- <proof prover="7"><result status="valid" time="1.92"/></proof>
+ <proof prover="7"><result status="valid" time="1.62"/></proof>
  </goal>
  <goal name="uint_27" expl="">
- <proof prover="7"><result status="valid" time="2.08"/></proof>
+ <proof prover="7"><result status="valid" time="1.76"/></proof>
  </goal>
  <goal name="uint_28" expl="">
  <proof prover="7"><result status="valid" time="2.25"/></proof>
@@ -1007,7 +1007,7 @@
  <proof prover="7"><result status="valid" time="2.77"/></proof>
  </goal>
  <goal name="uint_32" expl="">
- <proof prover="6"><result status="valid" time="9.28"/></proof>
+ <proof prover="6"><result status="valid" time="8.09"/></proof>
  </goal>
  <goal name="WP_parameter uint_recursion" expl="VC for uint_recursion">
  <transf name="split_goal_wp">
@@ -1057,7 +1057,7 @@
   <goal name="WP_parameter uint_bound.5" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter uint_bound.5.1" expl="assertion">
-   <proof prover="2"><result status="valid" time="7.22"/></proof>
+   <proof prover="2"><result status="valid" time="3.67"/></proof>
    </goal>
   </transf>
   </goal>
@@ -1125,7 +1125,7 @@
   <proof prover="8"><result status="valid" time="0.05"/></proof>
   </goal>
   <goal name="WP_parameter uint_eq.10" expl="postcondition">
-  <proof prover="6"><result status="valid" time="2.11"/></proof>
+  <proof prover="6"><result status="valid" time="1.79"/></proof>
   </goal>
   <goal name="WP_parameter uint_eq.11" expl="postcondition">
   <proof prover="8"><result status="valid" time="0.16"/></proof>

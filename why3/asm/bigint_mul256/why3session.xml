@@ -315,7 +315,7 @@
   <goal name="WP_parameter bigint_mul256.45" expl="precondition">
   <transf name="compute_in_goal">
    <goal name="WP_parameter bigint_mul256.45.1" expl="precondition">
-   <proof prover="0" timelimit="130" memlimit="8000"><result status="valid" time="0.58"/></proof>
+   <proof prover="0" timelimit="130" memlimit="8000"><result status="valid" time="0.41"/></proof>
    </goal>
   </transf>
   </goal>
@@ -329,7 +329,7 @@
   <goal name="WP_parameter bigint_mul256.47" expl="precondition">
   <transf name="compute_in_goal">
    <goal name="WP_parameter bigint_mul256.47.1" expl="precondition">
-   <proof prover="0" timelimit="130"><result status="valid" time="0.61"/></proof>
+   <proof prover="0" timelimit="130"><result status="valid" time="0.42"/></proof>
    </goal>
   </transf>
   </goal>
@@ -1152,7 +1152,7 @@
   <goal name="WP_parameter bigint_mul256.168" expl="precondition">
   <transf name="compute_in_goal">
    <goal name="WP_parameter bigint_mul256.168.1" expl="precondition">
-   <proof prover="0" timelimit="130" memlimit="8000"><result status="valid" time="0.91"/></proof>
+   <proof prover="0" timelimit="130" memlimit="8000"><result status="valid" time="0.70"/></proof>
    </goal>
   </transf>
   </goal>
@@ -1188,7 +1188,7 @@
   <goal name="WP_parameter bigint_mul256.174" expl="precondition">
   <transf name="compute_in_goal">
    <goal name="WP_parameter bigint_mul256.174.1" expl="precondition">
-   <proof prover="0"><result status="valid" time="0.94"/></proof>
+   <proof prover="0"><result status="valid" time="0.71"/></proof>
    </goal>
   </transf>
   </goal>
@@ -1878,7 +1878,7 @@
   <goal name="WP_parameter bigint_mul256.279" expl="assertion">
   <transf name="compute_in_goal">
    <goal name="WP_parameter bigint_mul256.279.1" expl="assertion">
-   <proof prover="1" timelimit="130" memlimit="2000"><result status="valid" time="17.39"/></proof>
+   <proof prover="1" timelimit="130" memlimit="2000"><result status="valid" time="15.44"/></proof>
    </goal>
   </transf>
   </goal>
@@ -2164,7 +2164,7 @@
   <goal name="WP_parameter bigint_mul256.324" expl="VC for bigint_mul256">
   <transf name="compute_in_goal">
    <goal name="WP_parameter bigint_mul256.324.1" expl="VC for bigint_mul256">
-   <proof prover="1" timelimit="300"><result status="valid" time="144.28"/></proof>
+   <proof prover="1" timelimit="300"><result status="valid" time="126.68"/></proof>
    </goal>
   </transf>
   </goal>
@@ -2190,14 +2190,14 @@
    <goal name="WP_parameter bigint_mul256.326.1" expl="VC for bigint_mul256">
    <transf name="compute_in_goal">
     <goal name="WP_parameter bigint_mul256.326.1.1" expl="VC for bigint_mul256">
-    <proof prover="1"><result status="valid" time="3.57"/></proof>
+    <proof prover="1"><result status="valid" time="2.90"/></proof>
     </goal>
    </transf>
    </goal>
    <goal name="WP_parameter bigint_mul256.326.2" expl="VC for bigint_mul256">
    <transf name="compute_in_goal">
     <goal name="WP_parameter bigint_mul256.326.2.1" expl="VC for bigint_mul256">
-    <proof prover="1" timelimit="130"><result status="valid" time="3.80"/></proof>
+    <proof prover="1" timelimit="130"><result status="valid" time="3.31"/></proof>
     </goal>
    </transf>
    </goal>
@@ -2866,7 +2866,7 @@
   <goal name="WP_parameter bigint_mul256.416" expl="precondition">
   <transf name="compute_in_goal">
    <goal name="WP_parameter bigint_mul256.416.1" expl="precondition">
-   <proof prover="1"><result status="valid" time="2.75"/></proof>
+   <proof prover="1"><result status="valid" time="2.35"/></proof>
    </goal>
   </transf>
   </goal>
@@ -3021,14 +3021,14 @@
   <goal name="WP_parameter bigint_mul256.436" expl="precondition">
   <transf name="compute_in_goal">
    <goal name="WP_parameter bigint_mul256.436.1" expl="precondition">
-   <proof prover="1"><result status="valid" time="2.87"/></proof>
+   <proof prover="1"><result status="valid" time="2.39"/></proof>
    </goal>
   </transf>
   </goal>
   <goal name="WP_parameter bigint_mul256.437" expl="precondition">
   <transf name="compute_in_goal">
    <goal name="WP_parameter bigint_mul256.437.1" expl="precondition">
-   <proof prover="1"><result status="valid" time="2.99"/></proof>
+   <proof prover="1"><result status="valid" time="2.45"/></proof>
    </goal>
   </transf>
   </goal>
@@ -3091,7 +3091,7 @@
   <goal name="WP_parameter bigint_mul256.446" expl="precondition">
   <transf name="compute_in_goal">
    <goal name="WP_parameter bigint_mul256.446.1" expl="precondition">
-   <proof prover="1"><result status="valid" time="4.04"/></proof>
+   <proof prover="1"><result status="valid" time="3.47"/></proof>
    </goal>
   </transf>
   </goal>
@@ -3204,7 +3204,7 @@
   <goal name="WP_parameter bigint_mul256.460" expl="precondition">
   <transf name="compute_in_goal">
    <goal name="WP_parameter bigint_mul256.460.1" expl="precondition">
-   <proof prover="1"><result status="valid" time="3.13"/></proof>
+   <proof prover="1"><result status="valid" time="2.70"/></proof>
    </goal>
   </transf>
   </goal>
@@ -3386,7 +3386,7 @@
   <goal name="WP_parameter bigint_mul256.486" expl="precondition">
   <transf name="compute_in_goal">
    <goal name="WP_parameter bigint_mul256.486.1" expl="precondition">
-   <proof prover="0"><result status="valid" time="1.69"/></proof>
+   <proof prover="0"><result status="valid" time="1.41"/></proof>
    </goal>
   </transf>
   </goal>

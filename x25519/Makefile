@@ -14,6 +14,7 @@ all: test/test.hex \
 CURVE25519 = obj/fe25519.o \
 				     obj/fe25519_add.o \
 	           obj/fe25519_invert.o \
+	           obj/fe25519_mul121666.o \
 	           obj/fe25519_red.o \
 	           obj/fe25519_sub.o \
 	           obj/bigint_subp.o \

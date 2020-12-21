@@ -166,7 +166,7 @@
    <goal name="WP_parameter sub31_cf_from_z.1.21" expl="precondition">
    <transf name="introduce_premises">
     <goal name="WP_parameter sub31_cf_from_z.1.21.1" expl="precondition">
-    <proof prover="3"><result status="valid" time="0.38"/></proof>
+    <proof prover="3"><result status="valid" time="0.24"/></proof>
     </goal>
    </transf>
    </goal>
@@ -474,7 +474,7 @@
    <goal name="WP_parameter sub31_cf_from_z.1.65" expl="postcondition">
    <transf name="introduce_premises">
     <goal name="WP_parameter sub31_cf_from_z.1.65.1" expl="postcondition">
-    <proof prover="3"><result status="valid" time="21.88"/></proof>
+    <proof prover="3"><result status="valid" time="19.52"/></proof>
     </goal>
    </transf>
    </goal>
@@ -1297,7 +1297,7 @@
   <goal name="WP_parameter avrnacl_fe25519_sub_compute_section.29" expl="postcondition">
   <transf name="compute_in_goal">
    <goal name="WP_parameter avrnacl_fe25519_sub_compute_section.29.1" expl="postcondition">
-   <proof prover="6"><result status="valid" time="0.77"/></proof>
+   <proof prover="6"><result status="valid" time="0.51"/></proof>
    </goal>
   </transf>
   </goal>

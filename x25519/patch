@@ -1,4 +1,4 @@
-diff -u /home/mschoolderman/curve25519-atmega-20150304/small/bigint_mul256.S x25519/bigint_mul256.S
+diff -uw /home/mschoolderman/curve25519-atmega-20150304/small/bigint_mul256.S x25519/bigint_mul256.S
 --- /home/mschoolderman/curve25519-atmega-20150304/small/bigint_mul256.S	2015-03-04 08:09:30.000000000 +0100
 +++ x25519/bigint_mul256.S	2020-12-14 01:30:24.222398934 +0100
 @@ -1,4 +1,4 @@
@@ -151,21 +151,21 @@ diff -u /home/mschoolderman/curve25519-atmega-20150304/small/bigint_mul256.S x25
    TST R20
    BRNE add_M
  
-@@ -2019,6 +2016,13 @@
-   STD Y+61, R11
+@@ -2020,6 +2017,13 @@
    STD Y+62, R12
    STD Y+63, R13
-+
+   
 +  ADIW R30, 31
 +  IN R1, 0x3F
 +  CLI
 +  OUT 0x3E, R31
 +  OUT 0x3F, R1
 +  OUT 0x3D, R30
-   
++  
    CLR R1
    POP R29
-diff -u /home/mschoolderman/curve25519-atmega-20150304/small/bigint_square256.S x25519/bigint_square256.S
+   POP R28
+diff -uw /home/mschoolderman/curve25519-atmega-20150304/small/bigint_square256.S x25519/bigint_square256.S
 --- /home/mschoolderman/curve25519-atmega-20150304/small/bigint_square256.S	2015-03-04 08:09:30.000000000 +0100
 +++ x25519/bigint_square256.S	2020-12-14 10:50:37.829108989 +0100
 @@ -1,5 +1,5 @@
@@ -261,7 +261,7 @@ diff -u /home/mschoolderman/curve25519-atmega-20150304/small/bigint_square256.S 
    CLR R1
    POP R29
    POP R28
-diff -u /home/mschoolderman/curve25519-atmega-20150304/small/curve25519.c x25519/curve25519.c
+diff -uw /home/mschoolderman/curve25519-atmega-20150304/small/curve25519.c x25519/curve25519.c
 --- /home/mschoolderman/curve25519-atmega-20150304/small/curve25519.c	2015-03-04 08:09:30.000000000 +0100
 +++ x25519/curve25519.c	2020-12-14 00:39:23.998442352 +0100
 @@ -12,8 +12,6 @@
@@ -309,9 +309,9 @@ diff -u /home/mschoolderman/curve25519-atmega-20150304/small/curve25519.c x25519
  
  static void mladder(fe25519 *xr, fe25519 *zr, const unsigned char s[32])
  {
-diff -u /home/mschoolderman/curve25519-atmega-20150304/small/fe25519.c x25519/fe25519.c
---- /home/mschoolderman/curve25519-atmega-20150304/small/fe25519.c	2015-03-04 08:59:34.000000000 +0100
-+++ x25519/fe25519.c	2020-12-15 01:20:13.516439416 +0100
+diff -uw /home/mschoolderman/curve25519-atmega-20150304/small/fe25519.c x25519/fe25519.c
+--- /home/mschoolderman/curve25519-atmega-20150304/small/fe25519.c	2021-03-26 11:27:51.711668683 +0100
++++ x25519/fe25519.c	2021-03-26 11:29:12.706517726 +0100
 @@ -1,8 +1,8 @@
  #include "fe25519.h"
  
@@ -342,11 +342,10 @@ diff -u /home/mschoolderman/curve25519-atmega-20150304/small/fe25519.c x25519/fe
    mask = -mask;
    for(i=0;i<32;i++) 
      r->v[i] ^= mask & (x->v[i] ^ r->v[i]);
-@@ -74,16 +72,14 @@
-   fe25519_red(r,t);
+@@ -75,12 +73,12 @@
  } 
  
--/*
+ /*
 -extern void bigint_mul121666(unsigned char *r, const unsigned char *x);
 +static const fe25519 _121666 = {{0x42, 0xDB, 0x01, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
 +
@@ -358,11 +357,8 @@ diff -u /home/mschoolderman/curve25519-atmega-20150304/small/fe25519.c x25519/fe
 +  bigint_mul256(t,x->v,_121666.v);
    fe25519_red(r,t);
  } 
--*/
- 
- void fe25519_square(fe25519 *r, const fe25519 *x)
- {
-diff -u /home/mschoolderman/curve25519-atmega-20150304/small/fe25519.h x25519/fe25519.h
+ */
+diff -uw /home/mschoolderman/curve25519-atmega-20150304/small/fe25519.h x25519/fe25519.h
 --- /home/mschoolderman/curve25519-atmega-20150304/small/fe25519.h	2015-03-04 08:09:30.000000000 +0100
 +++ x25519/fe25519.h	2020-12-14 01:27:07.849224588 +0100
 @@ -60,7 +60,7 @@
@@ -374,18 +370,17 @@ diff -u /home/mschoolderman/curve25519-atmega-20150304/small/fe25519.h x25519/fe
  
  
  #endif
-Only in /home/mschoolderman/curve25519-atmega-20150304/small: fe25519_mul121666.S
-diff -u /home/mschoolderman/curve25519-atmega-20150304/small/Makefile x25519/Makefile
---- /home/mschoolderman/curve25519-atmega-20150304/small/Makefile	2015-03-04 08:59:02.000000000 +0100
-+++ x25519/Makefile	2020-12-14 01:25:46.730391819 +0100
-@@ -14,7 +14,6 @@
- CURVE25519 = obj/fe25519.o \
- 				     obj/fe25519_add.o \
- 	           obj/fe25519_invert.o \
--	           obj/fe25519_mul121666.o \
- 	           obj/fe25519_red.o \
- 	           obj/fe25519_sub.o \
- 	           obj/bigint_subp.o \
+diff -uw /home/mschoolderman/curve25519-atmega-20150304/small/fe25519_mul121666.S x25519/fe25519_mul121666.S
+--- /home/mschoolderman/curve25519-atmega-20150304/small/fe25519_mul121666.S	2015-03-04 08:09:30.000000000 +0100
++++ x25519/fe25519_mul121666.S	2021-03-26 12:15:06.399600688 +0100
+@@ -198,6 +198,6 @@
+ BRNE cloop
+ 
+ 
+-CLR R1
++CLR R1 ; R1 is already 0, but we leave this in for clarity
+ POP R8
+ RET
 Only in /home/mschoolderman/curve25519-atmega-20150304/small: obj
-Only in x25519/: patch
+Only in x25519: patch
 Common subdirectories: /home/mschoolderman/curve25519-atmega-20150304/small/test and x25519/test

@@ -17,6 +17,7 @@ obj/fe25519_add.o: asm/fe25519_add.replay
 obj/fe25519_invert.o: c/fe25519.replay
 obj/fe25519_red.o: asm/fe25519_red.replay
 obj/fe25519_sub.o: asm/fe25519_sub.replay
+obj/fe25519_mul121666.o: asm/fe25519_mul121666.replay
 obj/bigint_subp.o: asm/bigint_subp.replay
 obj/bigint_mul256.o: asm/bigint_mul256_mul128.replay asm/bigint_mul256.replay
 obj/bigint_square256.o: asm/bigint_square256_sqr128.replay asm/bigint_square256.replay

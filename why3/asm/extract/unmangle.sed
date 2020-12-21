@@ -28,8 +28,9 @@ s/| \(.*\) -> ()/\n\l\1:/
 s/| \(.*\) -> /\n\l\1:\n/
 
 # remove ocaml noise
-s/begin//g
-s/end//g
+s/()//g
+s/begin/`/g
+s/end/')/g
 s/with//g
 s/try//g
 s/(\*[^*]*\*)//g
@@ -37,9 +38,11 @@ s/(\*[^*]*\*)//g
 # translate function calls and labels
 s/rjmp \(.*\)/RJMP \l\1/
 s/ *tst_brne \([^ ]*\), \(.*\)/ TST \1\n BRNE \l\2/
+s/ *dec_brne \([^ ]*\), \(.*\)/ DEC \1\n BRNE \l\2/
 
 # replace function headings with labels
-s/let \([^ ]*\) (us: unit) = /\1:\n/
+#s/let \([^ ]*\) (us: unit) = /\1:\n/
+s/let \([^ ]*\)\( ([^)]*)\)\+ = /define(`LASTDEF',\1)\ndefine(\1,/
 
 # delete empty lines
 /^[[:space:]]*$/d

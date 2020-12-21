@@ -25,6 +25,7 @@ s/^ *;//g
 
 # translate load-and-increment mnemonics
 s/ld \(\w\+\), \(r[XY-Z]\)+/ld_inc \1, \2/
+s/st \(r[XY-Z]\)+, \(\w\+\)/st_inc \1, \2/
 
 # replace syntax that functions to separate arguments with juxtaposition
 s/[,+-] \?/ /g

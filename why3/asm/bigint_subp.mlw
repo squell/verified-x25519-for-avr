@@ -1,11 +1,3 @@
-(*
-general TODO:
-- memory stack invariance
-
-labels to investigate
-'AD
-'Q1
-*)
 module AVRcode
 
 use import avrmodel.AVRint

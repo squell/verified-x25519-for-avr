@@ -22,6 +22,7 @@ s/let o1 = \([^ ]*\) in \([^|]*\) o1/\2 \1,/g
 s/let o2 = \([^ ]*\) in \([^|]*\) o2/\2 \1,/g
 
 # replace whyml exceptions with labels
+s/end |/|/g
 s/| Branch res -> begin match res//
 s/| _ .*$//
 s/| \(.*\) -> ()/\n\l\1:/
@@ -29,10 +30,11 @@ s/| \(.*\) -> /\n\l\1:\n/
 
 # remove ocaml noise
 s/()//g
-s/begin/`/g
+s/begin try begin//g
+s/end with//g
+s/begin//g
 s/end/')/g
 s/with//g
-s/try//g
 s/(\*[^*]*\*)//g
 
 # translate function calls and labels
@@ -42,7 +44,7 @@ s/ *dec_brne \([^ ]*\), \(.*\)/ DEC \1\n BRNE \l\2/
 
 # replace function headings with labels
 #s/let \([^ ]*\) (us: unit) = /\1:\n/
-s/let \([^ ]*\)\( ([^)]*)\)\+ = /define(`LASTDEF',\1)\ndefine(\1,/
+s/let \([^ ]*\)\( ([^)]*)\)\+ = /define(`LASTDEF',\1)\ndefine(\1,`/
 
 # delete empty lines
 /^[[:space:]]*$/d
